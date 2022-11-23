@@ -1,11 +1,13 @@
 from src.drawing import pp_draw
-from src.entities.uav_entities import *
+from src.entities.depot.depots import Depot
+from src.entities.environment.environment import Environment
+from src.entities.uavs.drone import Drone
+from src.simulation.logger import Logger
 from src.simulation.metrics import Metrics
 from src.utilities import config, utilities
 from src.routing_algorithms.net_routing import MediumDispatcher
 from collections import defaultdict
 from tqdm import tqdm
-
 import numpy as np
 import math
 import time
@@ -44,7 +46,6 @@ class Simulator:
                  communication_error_type=config.CHANNEL_ERROR_TYPE,
                  prob_size_cell_r=config.CELL_PROB_SIZE_R,
                  simulation_name=""):
-        self.cur_step = None
         self.drone_com_range = drone_com_range
         self.drone_sen_range = drone_sen_range
         self.drone_speed = drone_speed
@@ -68,6 +69,7 @@ class Simulator:
         self.show_plot = show_plot
         self.routing_algorithm = routing_algorithm
         self.communication_error_type = communication_error_type
+        self.cur_step = 0
 
         # --------------- cell for drones -------------
         self.prob_size_cell_r = prob_size_cell_r
@@ -79,27 +81,29 @@ class Simulator:
 
         # Setup vari
         # for stats
-        self.metrics = Metrics(self)
+        self.metrics = Metrics()
+        self.logger = Logger()
 
         # setup network
         self.__setup_net_dispatcher()
 
-        # Setup the simulation
+        # Set up the simulation
         self.__set_simulation()
-        self.__set_metrics()
 
-        self.simulation_name = "simulation-" + utilities.date() + "_" + str(simulation_name) + "_" + str(self.seed) + "_" + str(self.n_drones) + "_" + str(self.routing_algorithm)
+        self.simulation_name = "test-" + utilities.date() + "_" + str(simulation_name) + "_" + str(self.seed)
         self.simulation_test_dir = self.simulation_name + "/"
 
         self.start = time.time()
         self.event_generator = utilities.EventGenerator(self)
 
     def __setup_net_dispatcher(self):
-        self.network_dispatcher = MediumDispatcher(self.metrics)
+        """
 
-    def __set_metrics(self):
-        """ the method sets up all the parameters in the metrics class """
-        self.metrics.info_mission()
+        @return:
+        """
+
+        self.network_dispatcher = MediumDispatcher(self)
+
 
     def __set_random_generators(self):
         if self.seed is not None:
@@ -112,67 +116,75 @@ class Simulator:
         """ the method creates all the uav entities """
 
         self.__set_random_generators()
-
         self.path_manager = utilities.PathManager(config.PATH_FROM_JSON, config.JSONS_PATH_PREFIX, self.seed)
-        self.environment = Environment(self.env_width, self.env_height, self)
+        self.environment = Environment(simulator=self, width=self.env_width, height=self.env_height)
 
-        self.depot = Depot(self.depot_coordinates, self.depot_com_range, self)
+        self.depot = Depot(simulator=self,
+                           coordinates=self.depot_coordinates,
+                           communication_range=self.depot_com_range)
 
         self.drones = []
 
         # drone 0 is the first
         for i in range(self.n_drones):
-            self.drones.append(Drone(i, self.path_manager.path(i, self), self.depot, self))
 
-        self.environment.add_drones(self.drones)
-        self.environment.add_depot(self.depot)
+            self.drones.append(Drone(simulator=self, identifier=i, path=self.path_manager.path(i, self), depot=self.depot))
+
+        self.environment.drones = self.drones
+        self.environment.depot = self.depot
 
         # Set the maximum distance between the drones and the depot
-        self.max_dist_drone_depot = utilities.euclidean_distance(self.depot.coords, (self.env_width, self.env_height))
+        self.max_dist_drone_depot = utilities.euclidean_distance(self.depot.coordinates, (self.env_width, self.env_height))
 
         if self.show_plot or config.SAVE_PLOT:
-            self.draw_manager = pp_draw.PathPlanningDrawer(self.environment, self, borders=True)
+            self.draw_manager = pp_draw.PathPlanningDrawer(env=self.environment, simulator=self, padding=25, borders=True)
 
     def __sim_name(self):
         """
-            return the identification name for
-            the current simulation. It is useful to print
-            the simulation progress
+        Returns the identification name for
+        the current simulation. It is useful to print
+        the simulation progress
+        @return:
         """
-        return "sim_seed" + str(self.seed) + "drones" + str(self.n_drones) + "_step"
 
-    def __plot(self, cur_step):
+        return f"SIMULATION_SEED: {str(self.seed)} drones: {str(self.n_drones)} "
+
+    def __plot(self):
         """ plot the simulation """
-        if cur_step % config.SKIP_SIM_STEP != 0:
+
+        if self.cur_step % config.SKIP_SIM_STEP != 0:
             return
 
         # delay draw
         if config.WAIT_SIM_STEP > 0:
+
             time.sleep(config.WAIT_SIM_STEP)
 
         # drones plot
         for drone in self.drones:
-            self.draw_manager.draw_drone(drone, cur_step)
+
+            self.draw_manager.draw_drone(drone=drone, cur_step=self.cur_step)
 
         # depot plot
         self.draw_manager.draw_depot(self.depot)
 
         # events
         for event in self.environment.active_events:
+
             self.draw_manager.draw_event(event)
 
-        # Draw simulation info
-        self.draw_manager.draw_simulation_info(cur_step=cur_step, max_steps=self.len_simulation)
+        # draw simulation info
+        self.draw_manager.draw_simulation_info(cur_step=self.cur_step, max_steps=self.len_simulation)
 
-        # rendering
-        self.draw_manager.update(show=self.show_plot, save=config.SAVE_PLOT,
-                                 filename=self.sim_save_file + str(cur_step) + ".png")
+        # rendering phase
+        file_name = self.sim_save_file + str(self.cur_step) + ".png"
+        self.draw_manager.update(show=self.show_plot, save=config.SAVE_PLOT, filename=file_name)
 
     def increase_meetings_probs(self, drones, cur_step):
         """ Increases the probabilities of meeting someone. """
         cells = set()
         for drone in drones:
-            coords = drone.coords
+            coords = drone.coordinates
             cell_index = utilities.TraversedCells.coord_to_cell(size_cell=self.prob_size_cell,
                                                                 width_area=self.env_width,
                                                                 x_pos=coords[0],  # e.g. 1500
@@ -180,7 +192,7 @@ class Simulator:
             cells.add(int(cell_index[0]))
 
         for cell, cell_center in utilities.TraversedCells.all_centers(self.env_width, self.env_height,
-                                                                      self.prob_size_cell):
+                                                                          self.prob_size_cell):
 
             index_cell = int(cell[0])
             old_vals = self.cell_prob_map[index_cell]
@@ -194,12 +206,11 @@ class Simulator:
 
     def run(self):
         """
-        Simulator main function
-        @return: None
+        the method starts the simulation
         """
 
         for cur_step in tqdm(range(self.len_simulation)):
-            
+
             self.cur_step = cur_step
             # check for new events and remove the expired ones from the environment
             # self.environment.update_events(cur_step)
@@ -211,35 +222,67 @@ class Simulator:
             self.event_generator.handle_events_generation(cur_step, self.drones)
 
             for drone in self.drones:
+
                 # 1. update expired packets on drone buffers
                 # 2. try routing packets vs other drones or depot
                 # 3. actually move the drone towards next waypoint or depot
 
-                drone.update_packets(cur_step)
-                drone.routing(self.drones, self.depot, cur_step)
+                drone.update_packets()
+                drone.routing(self.drones)
                 drone.move(self.time_step_duration)
 
             # in case we need probability map
             if config.ENABLE_PROBABILITIES:
+
                 self.increase_meetings_probs(self.drones, cur_step)
 
             if self.show_plot or config.SAVE_PLOT:
-                self.__plot(cur_step)
+                self.__plot()
 
         if config.DEBUG:
-            print("End of simulation, sim time: " + str(
-                (cur_step + 1) * self.time_step_duration) + " sec, #iteration: " + str(cur_step + 1))
+
+            print("End of simulation, sim time: " + str((self.cur_step + 1) * self.time_step_duration) + " sec, #iteration: " + str(cur_step + 1))
 
     def close(self):
         """ do some stuff at the end of simulation"""
         print("Closing simulation")
 
-        self.print_metrics(plot_id="final")
+        self.compute_final_metrics()
+        self.print_metrics(metrics=True, logger=False)
         self.save_metrics(config.ROOT_EVALUATION_DATA + self.simulation_name)
 
-    def print_metrics(self, plot_id="final"):
-        """ add signature """
-        self.metrics.print_overall_stats()
+    def compute_final_metrics(self):
+        """
+
+        @return:
+        """
+
+        print(self.logger)
+
+        delivery_time_list = []
+
+        for timestep, source_drone, packet in self.logger.drones_packets_to_depot:
+
+            delivery_time = packet.time_delivery - packet.time_step_creation
+            delivery_time_list.append(delivery_time)
+
+        self.metrics.packet_mean_delivery_time = sum(delivery_time_list)/len(delivery_time_list)
+
+        self.metrics.drones_packets_to_depot = len(self.logger.drones_packets_to_depot)
+        self.metrics.all_packets_correctly_sent_by_drones = len(self.logger.drones_packets)
+
+    def print_metrics(self, metrics: bool = True, logger: bool = False):
+        """
+
+        @return:
+        """
+        if metrics:
+
+            print(self.metrics)
+
+        if logger:
+
+            print(self.logger)
 
     def save_metrics(self, filename_path, save_pickle=False):
         """ add signature """

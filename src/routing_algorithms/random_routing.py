@@ -1,13 +1,13 @@
 import src.utilities.utilities as util
-from src.routing_algorithms.BASE_routing import BASE_routing
+from src.routing_algorithms.BASE_routing import BaseRouting
 
 
-class RandomRouting(BASE_routing):
+class RandomRouting(BaseRouting):
 
     def __init__(self, drone, simulator):
-        BASE_routing.__init__(self, drone, simulator)
+        BaseRouting.__init__(self, simulator=simulator, drone=drone)
 
-    def relay_selection(self, opt_neighbors):
+    def relay_selection(self, opt_neighbors, packet):
         """
         This function returns a random relay for packets.
 

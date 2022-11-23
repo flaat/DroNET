@@ -95,7 +95,7 @@ class EventGenerator:
             # drone that will receive the packet:
             drone_index = self.rnd_drones.randint(0, len(drones))
             drone = drones[drone_index]
-            drone.feel_event(cur_step)
+            drone.feel_event()
 
 
 # ------------------ Path manager ----------------------

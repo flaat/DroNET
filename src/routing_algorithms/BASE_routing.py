@@ -1,15 +1,21 @@
-from src.entities.uav_entities import DataPacket, ACKPacket, HelloPacket, Packet
+from src.entities.events.event import Event
+from src.entities.packets.packets import Packet, HelloPacket, DataPacket, ACKPacket
 from src.utilities import utilities as util
 from src.utilities import config
-
 from scipy.stats import norm
 import abc
 
 
-class BASE_routing(metaclass=abc.ABCMeta):
+class BaseRouting(metaclass=abc.ABCMeta):
+    """
+    This class is used as baseclass to build new routing protocols.
+    """
 
-    def __init__(self, drone, simulator):
-        """ The drone that is doing routing and simulator object. """
+    def __init__(self, simulator, drone):
+        """
+        @param drone: The drone that needs to perform routing
+        @param simulator: The Simulator instance
+        """
 
         self.drone = drone
         self.simulator = simulator
@@ -20,119 +26,156 @@ class BASE_routing(metaclass=abc.ABCMeta):
         self.current_n_transmission = 0
         self.hello_messages = {}  # { drone_id : most recent hello packet}
         self.network_disp = simulator.network_dispatcher
-        self.simulator = simulator
         self.no_transmission = False
 
     @abc.abstractmethod
-    def relay_selection(self, geo_neighbors, packet):
+    def relay_selection(self, neighbors: list, packet):
+        """
+        Abstract method to implement the routing protocol
+        @param neighbors: a list of neighbors drones
+        """
         pass
 
     def routing_close(self):
         self.no_transmission = False
 
-    def drone_reception(self, src_drone, packet: Packet, current_ts):
-        """ handle reception an ACKs for a packets """
+    def drone_reception(self, source_drone, packet: Packet):
+        """
+        This method handles the drones packet reception.
+        @param source_drone: Drone that sent the packet
+        @param packet: Packet sent
+        @return:
+        """
+
         if isinstance(packet, HelloPacket):
-            src_id = packet.src_drone.identifier
-            self.hello_messages[src_id] = packet  # add packet to our dictionary
+
+            source_drone_id = packet.source_drone.identifier
+
+            self.hello_messages[source_drone_id] = packet  # add packet to our dictionary
 
         elif isinstance(packet, DataPacket):
+
             self.no_transmission = True
             self.drone.accept_packets([packet])
-            # build ack for the reception
-            ack_packet = ACKPacket(self.drone, src_drone, self.simulator, packet, current_ts)
-            self.unicast_message(ack_packet, self.drone, src_drone, current_ts)
+
+            null_event = Event(self.simulator, (-1, -1), -1)
+
+            ack_packet = ACKPacket(simulator=self.simulator,
+                                   source_drone=self.drone,
+                                   destination_drone=source_drone,
+                                   acked_packet=packet,
+                                   event_ref=null_event)
+
+            self.unicast_message(packet_to_send=ack_packet, source_drone=self.drone, destination_drone=source_drone)
 
         elif isinstance(packet, ACKPacket):
+
             self.drone.remove_packets([packet.acked_packet])
-            # packet.acked_packet.optional_data
-            # print(self.is_packet_received_drone_reward, "ACK", self.drone.identifier)
-            if self.drone.buffer_length() == 0:
+
+            if self.drone.buffer_length == 0:
                 self.current_n_transmission = 0
                 self.drone.move_routing = False
 
-    def drone_identification(self, drones, cur_step):
-        """ handle drone hello messages to identify neighbors """
-        # if self.drone in drones: drones.remove(self.drone)  # do not send hello to yourself
-        if cur_step % config.HELLO_DELAY != 0:  # still not time to communicate
-            return
+    def drone_identification(self, drones):
+        """
+        It sends to the neighbours an HelloPacket
+        @param drones:
+        @return:
+        """
 
-        my_hello = HelloPacket(self.drone, cur_step, self.simulator, self.drone.coords,
-                               self.drone.speed, self.drone.next_target())
+        # still not time to communicate
+        if self.simulator.cur_step % config.HELLO_DELAY != 0:
+            return 0
 
-        self.broadcast_message(my_hello, self.drone, drones, cur_step)
+        null_event = Event(simulator=self.simulator,
+                           coordinates=(-1, -1),
+                           current_time=-1)
 
-    def routing(self, depot, drones, cur_step):
+        hello_packet = HelloPacket(simulator=self.simulator,
+                                   source_drone=self.drone,
+                                   current_position=self.drone.coordinates,
+                                   current_speed=self.drone.speed,
+                                   next_target=self.drone.next_target(),
+                                   event_ref=null_event)
+
+        self.broadcast_message(packet_to_send=hello_packet,
+                               source_drone=self.drone,
+                               destination_drones=drones)
+
+    def routing(self, drones):
+        """
+        @param drones:
+        @return:
+        """
+
         # set up this routing pass
-        self.drone_identification(drones, cur_step)
+        self.drone_identification(drones)
 
-        self.send_packets(cur_step)
+        self.send_packets()
 
         # close this routing pass
         self.routing_close()
 
-    def send_packets(self, cur_step):
-        """ procedure 3 -> choice next hop and try to send it the data packet """
+    def send_packets(self):
+        """
+        @return:
+        """
 
-        # FLOW 0
-        if self.no_transmission or self.drone.buffer_length() == 0:
-            return
+        # FLOW 1: if it is not possible to communicate with other Entities or there are no packets to send
+        if self.no_transmission or self.drone.buffer_length == 0:
+            return 0
 
-        # FLOW 1
-        if util.euclidean_distance(self.simulator.depot.coords, self.drone.coords) <= self.simulator.depot_com_range:
-            # add error in case
-            self.transfer_to_depot(self.drone.depot, cur_step)
-
+        # FLOW 2: the Depot is close enough to offload packets directly
+        if self.drone.distance_from_depot <= min(self.drone.communication_range,
+                                                 self.drone.depot.communication_range):
+            self.transfer_to_depot(self.drone.depot)
             self.drone.move_routing = False
             self.current_n_transmission = 0
-            return
+            print("YES")
+            return 0
 
-        if self.drone.identifier != 0:
-            return
-
-        if cur_step % self.simulator.drone_retransmission_delta == 0:
+        # FLOW 3: find the best relay through the routing algorithm
+        if self.simulator.cur_step % self.simulator.drone_retransmission_delta == 0:
 
             opt_neighbors = []
-            for hpk_id in self.hello_messages:
-                hpk: HelloPacket = self.hello_messages[hpk_id]
 
-                # check if packet is too old
-                if hpk.time_step_creation < cur_step - config.OLD_HELLO_PACKET:
+            for hello_packet_id in self.hello_messages:
+
+                hello_packet = self.hello_messages[hello_packet_id]
+
+                # check if packet is too old, if so discard the packet
+                if hello_packet.time_step_creation < self.simulator.cur_step - config.OLD_HELLO_PACKET:
                     continue
 
-                opt_neighbors.append((hpk, hpk.src_drone))
+                opt_neighbors.append((hello_packet, hello_packet.source_drone))
 
-            if len(opt_neighbors) == 0:
-                return
+            if opt_neighbors:
 
-            # send packets
-            for pkd in self.drone.all_packets():
+                for packet in self.drone.all_packets:
 
-                self.simulator.metrics.mean_numbers_of_possible_relays.append(len(opt_neighbors))
+                    best_neighbor = self.relay_selection(opt_neighbors, packet)  # compute score
 
-                best_neighbor = self.relay_selection(opt_neighbors, pkd)  # compute score
+                    if best_neighbor is not None:
+                        # send packets
 
-                if best_neighbor is not None:
+                        self.unicast_message(packet_to_send=packet,
+                                             source_drone=self.drone,
+                                             destination_drone=best_neighbor)
 
-                    self.unicast_message(pkd, self.drone, best_neighbor, cur_step)
-
-                self.current_n_transmission += 1
+            self.current_n_transmission += 1
 
     def geo_neighborhood(self, drones, no_error=False):
         """
-        @param drones:
-        @param no_error:
-        @return: A list all the Drones that are in self.drone neighbourhood (no matter the distance to depot),
-            in all direction in its transmission range, paired with their distance from self.drone
+        returns the list all the Drones that are in self.drone neighbourhood (no matter the distance to depot),
+        in all direction in its transmission range, paired with their distance from self.drone
         """
 
         closest_drones = []  # list of this drone's neighbours and their distance from self.drone: (drone, distance)
 
         for other_drone in drones:
-
             if self.drone.identifier != other_drone.identifier:  # not the same drone
-                drones_distance = util.euclidean_distance(self.drone.coords,
-                                                          other_drone.coords)  # distance between two drones
+                drones_distance = util.euclidean_distance(self.drone.coordinates,
+                                                          other_drone.coordinates)  # distance between two drones
 
                 if drones_distance <= min(self.drone.communication_range,
                                           other_drone.communication_range):  # one feels the other & vv
@@ -149,41 +192,62 @@ class BASE_routing(metaclass=abc.ABCMeta):
         goes through, false otherwise.
         """
 
-        assert (drones_distance <= self.drone.communication_range)
+        assert drones_distance <= self.drone.communication_range
 
         if no_error:
             return True
 
         if self.simulator.communication_error_type == config.ChannelError.NO_ERROR:
+
             return True
 
         elif self.simulator.communication_error_type == config.ChannelError.UNIFORM:
+
             return self.simulator.rnd_routing.rand() <= self.simulator.drone_communication_success
 
         elif self.simulator.communication_error_type == config.ChannelError.GAUSSIAN:
+
             return self.simulator.rnd_routing.rand() <= self.gaussian_success_handler(drones_distance)
 
-    def broadcast_message(self, packet, src_drone, dst_drones, curr_step):
-        """ send a message to my neigh drones"""
-        for d_drone in dst_drones:
-            self.unicast_message(packet, src_drone, d_drone, curr_step)
+    def broadcast_message(self, packet_to_send, source_drone, destination_drones):
+        """
+        It Sends a message to all the neighbours
+        @param packet_to_send:
+        @param source_drone:
+        @param destination_drones:
+        @return:
+        """
 
-    def unicast_message(self, packet, src_drone, dst_drone, curr_step):
-        """ send a message to my neigh drones"""
-        # Broadcast using Network dispatcher
-        self.simulator.network_dispatcher.send_packet_to_medium(packet, src_drone, dst_drone,
-                                                                curr_step + config.LIL_DELTA)
+        for drone in destination_drones:
+            self.unicast_message(packet_to_send=packet_to_send,
+                                 source_drone=source_drone,
+                                 destination_drone=drone)
+
+    def unicast_message(self, packet_to_send, source_drone, destination_drone):
+        """
+        It Sends a message directly to a single drone
+        @param packet_to_send:
+        @param source_drone:
+        @param destination_drone:
+        @return:
+        """
+
+        self.simulator.network_dispatcher.send_packet_to_medium(packet_to_send=packet_to_send,
+                                                                source_drone=source_drone,
+                                                                destination_drone=destination_drone,
+                                                                to_send_ts=self.simulator.cur_step + config.LIL_DELTA)
 
     def gaussian_success_handler(self, drones_distance):
         """ get the probability of the drone bucket """
         bucket_id = int(drones_distance / self.radius_corona) * self.radius_corona
-        return self.buckets_probability[bucket_id] * config.GUASSIAN_SCALE
+        return self.buckets_probability[bucket_id] * config.GAUSSIAN_SCALE
 
-    def transfer_to_depot(self, depot, cur_step):
-        """ self.drone is close enough to depot and offloads its buffer to it, restarting the monitoring
-                mission from where it left it
+    def transfer_to_depot(self, depot):
         """
-        depot.transfer_notified_packets(self.drone, cur_step)
+        self.drone is close enough to depot and offloads its buffer to it, restarting the monitoring
+        mission from where it left it
+        """
+        depot.transfer_notified_packets(self.drone)
         self.drone.empty_buffer()
         self.drone.move_routing = False
 

@@ -1,11 +1,11 @@
-from src.routing_algorithms.BASE_routing import BASE_routing
+from src.routing_algorithms.BASE_routing import BaseRouting
 from src.utilities import utilities as util
 
 
-class QLearningRouting(BASE_routing):
+class QLearningRouting(BaseRouting):
 
     def __init__(self, drone, simulator):
-        BASE_routing.__init__(self, drone, simulator)
+        BaseRouting.__init__(self, drone, simulator)
         self.q_table = {}
         self.taken_actions = {}  # id event : (old_state, old_action)
 
@@ -50,8 +50,8 @@ class QLearningRouting(BASE_routing):
         # Only if you need!
         # cell_index = util.TraversedCells.coord_to_cell(size_cell=self.simulator.prob_size_cell,
         #                                                width_area=self.simulator.env_width,
-        #                                                x_pos=self.drone.coords[0],  # e.g. 1500
-        #                                                y_pos=self.drone.coords[1])[0]  # e.g. 500
+        #                                                x_pos=self.drone.coordinates[0],  # e.g. 1500
+        #                                                y_pos=self.drone.coordinates[1])[0]  # e.g. 500
         # print(cell_index)
         state, action = None, None
 

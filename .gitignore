@@ -1,4 +1,3 @@
-data/evaluation_tests/*
 data/plots/*
 data/plots/evaluation_tests/*
 */__pycache__

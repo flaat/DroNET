@@ -1,39 +1,42 @@
 
 import src.utilities.utilities as util
-from src.entities.uav_entities import DataPacket
+from src.entities.packets.packets import DataPacket
 from src.simulation.metrics import Metrics
+
+# TODO: Write Docs
 
 
 class MediumDispatcher:
 
-    def __init__(self, metric_class: Metrics):
-        self.packets = []
-        self.metric_class = metric_class
+    def __init__(self, simulator):
+        """
 
-    def send_packet_to_medium(self, packet, src_drone, dst_drone, to_send_ts):
+        @param simulator:
+        """
+        self.packets = []
+        self.simulator = simulator
+
+    def send_packet_to_medium(self, packet_to_send, source_drone, destination_drone, to_send_ts):
         """
         Simulates sending a packet from one drone to another with a specific timestamp, by inserting these values in
         a list.
         If the packet is a control packet, then increment the control packets counter by one.
 
-
-        @param packet: the packet to be sent
-        @param src_drone: the drone sending the packet
-        @param dst_drone: the drone receiving the packet
-        @param to_send_ts: current timestamp + delay
-        @return: None
+        @param packet_to_send: The Packet to send
+        @param source_drone: Source Drone
+        @param destination_drone: Destination Drone
+        @param to_send_ts:
         """
-        if isinstance(packet, DataPacket):
-            #TODO: figure this out: the function is incomplete, it just skips (pass instruction). Can we delete it or do we want to implement this?
 
-            #self.metric_class.all_data_packets_in_simulation += 1
-            pass
+        if isinstance(packet_to_send, DataPacket):
+
+            self.simulator.metrics.all_data_packets_in_simulation += 1
 
         else:
 
-            self.metric_class.all_control_packets_in_simulation += 1
+            self.simulator.metrics.all_control_packets_in_simulation += 1
 
-        self.packets.append((packet, src_drone, dst_drone, to_send_ts))
+        self.packets.append((packet_to_send, source_drone, destination_drone, to_send_ts))
 
     def run_medium(self, current_ts):
         """
@@ -45,29 +48,43 @@ class MediumDispatcher:
 
         @param current_ts: current timestamp
         @return: None
+        @param current_ts:
+        @return:
         """
 
-        if self.subfunction1(current_ts) != self.subfunction2(current_ts):
-            print("List 1 ", self.subfunction1(current_ts))
-            print("List 2 ", self.subfunction2(current_ts))
+        indices_to_drop = []
+        self_packets_deep_copy = self.packets[:]
 
-        # If a message is delivered remove it from the list of packets to send.
-        to_drop_indices = []
-        original_self_packets = self.packets[:]
         self.packets = []
 
-        for i in range(len(original_self_packets)):
-            packet, src_drone, dst_drone, to_send_ts = original_self_packets[i]
+        for index, packet in enumerate(self_packets_deep_copy):
 
-            if to_send_ts == current_ts:  # time to send this packet
-                to_drop_indices.append(i)
+            packet_to_send, source_drone, destination_drone, to_send_ts = packet
 
-                if src_drone.identifier != dst_drone.identifier:
-                    drones_distance = util.euclidean_distance(src_drone.coords, dst_drone.coords)
-                    if drones_distance <= min(src_drone.communication_range, dst_drone.communication_range):
-                        if dst_drone.routing_algorithm.channel_success(drones_distance):
-                            dst_drone.routing_algorithm.drone_reception(src_drone, packet, current_ts)  # reception of a packet
+            # time to send this packet_to_send
+            if to_send_ts == current_ts:
 
+                indices_to_drop.append(index)
+
+                if source_drone.identifier != destination_drone.identifier:
+
+                    drones_distance = util.euclidean_distance(source_drone.coordinates, destination_drone.coordinates)
+
+                    if drones_distance <= min(source_drone.communication_range, destination_drone.communication_range):
+
+                        if destination_drone.routing_algorithm.channel_success(drones_distance):
+
+                            # destination drone receives packet_to_send
+                            destination_drone.routing_algorithm.drone_reception(source_drone, packet_to_send)
+
+                            self.simulator.logger.add_drones_packet(timestep=self.simulator.cur_step,
+                                                                    packet=packet_to_send,
+                                                                    source_drone=source_drone)
+
+
+        self_packets_deep_copy = [self_packets_deep_copy[i] for i in range(len(self_packets_deep_copy)) if i not in indices_to_drop]
+
+        self.packets += self_packets_deep_copy
         # TODO: unroll this and make it more readable.
-        original_self_packets = [original_self_packets[i] for i in range(len(original_self_packets)) if i not in to_drop_indices]
-        self.packets = original_self_packets + self.packets
+
+
