@@ -35,7 +35,7 @@ class Depot(Entity):
 
             # add metrics: all the packets notified to the depot
 
-            self.simulator.logger.add_drones_packet_to_depot(timestep=self.simulator.cur_step,
+            self.simulator.logger.add_drones_packet_to_depot(timestep=self.clock,
                                                              packet=packet,
                                                              source_drone=drone)
-            packet.time_delivery = self.simulator.cur_step
+            packet.time_delivery = self.clock
