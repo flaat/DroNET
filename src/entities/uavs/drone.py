@@ -8,9 +8,9 @@ from src.utilities import config, utilities
 
 class Drone(Entity):
 
-    def __init__(self, identifier: int, path: list, depot: Depot):
+    def __init__(self, identifier: int, path: list, depot: Depot, logger=None, network_dispatcher=None):
 
-        super().__init__(identifier=identifier, coordinates=path[0])
+        super().__init__(identifier=identifier, coordinates=path[0], logger=logger)
 
         self.depot = depot
         self.path = path
@@ -32,7 +32,7 @@ class Drone(Entity):
         self.move_routing = False  # if true, it moves to the depot
 
         # setup drone routing algorithm
-        self.routing_algorithm = config.ROUTING_ALGORITHM.value(self)
+        self.routing_algorithm = config.ROUTING_ALGORITHM.value(self, network_dispatcher)
 
         # last mission coord to restore the mission after movement
         self.last_mission_coords = None
@@ -106,7 +106,7 @@ class Drone(Entity):
         # store the events that are missing due to movement routing
         else:
 
-            self.simulator.logger.add_event_not_listened(timestep=self.clock, event=generated_event)
+            self.logger.add_event_not_listened(timestep=self.clock, event=generated_event)
 
     def accept_packets(self, packets):
         """

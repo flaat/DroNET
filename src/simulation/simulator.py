@@ -125,7 +125,8 @@ class Simulator:
                                        height=self.env_height)
 
         self.depot = Depot(coordinates=self.depot_coordinates,
-                           communication_range=self.depot_com_range)
+                           communication_range=self.depot_com_range,
+                           logger=self.logger)
 
         self.drones = []
 
@@ -133,7 +134,9 @@ class Simulator:
         for i in range(self.n_drones):
             self.drones.append(Drone(identifier=i,
                                      path=self.path_manager.path(i, self),
-                                     depot=self.depot))
+                                     depot=self.depot,
+                                     network_dispatcher=self.network_dispatcher,
+                                     logger=self.logger))
 
         self.environment.drones = self.drones
         self.environment.depot = self.depot
@@ -218,6 +221,7 @@ class Simulator:
 
         for cur_step in tqdm(range(self.len_simulation)):
 
+            self.depot.clock = cur_step
             self.cur_step = cur_step
             # check for new events and remove the expired ones from the environment
             # self.environment.update_events(cur_step)
@@ -233,6 +237,7 @@ class Simulator:
                 # 2. try routing packets vs other drones or depot
                 # 3. actually move the drone towards next waypoint or depot
 
+                drone.clock = cur_step
                 drone.update_packets()
                 drone.routing(self.drones)
                 drone.move(self.time_step_duration)
@@ -267,12 +272,15 @@ class Simulator:
         delivery_time_list = []
 
         for timestep, source_drone, packet in self.logger.drones_packets_to_depot:
+
             delivery_time = packet.time_delivery - packet.time_step_creation
+
             delivery_time_list.append(delivery_time)
 
         self.metrics.packet_mean_delivery_time = sum(delivery_time_list) / len(delivery_time_list)
 
         self.metrics.drones_packets_to_depot = len(self.logger.drones_packets_to_depot)
+
         self.metrics.all_packets_correctly_sent_by_drones = len(self.logger.drones_packets)
 
     def print_metrics(self, metrics: bool = True, logger: bool = False):
