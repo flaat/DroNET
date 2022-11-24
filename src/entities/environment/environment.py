@@ -9,15 +9,15 @@ class Environment(SimulatedEntity):
      random and then maybe felt from the drones. Now events are generated on the drones that they feel with
      a certain probability."""
 
-    def __init__(self, width, height, simulator):
-        super().__init__(simulator)
+    def __init__(self, width, height):
+        super().__init__()
 
         self.depot = None
         self.drones = None
         self.width = width
         self.height = height
 
-        self.event_generator = EventGenerator(height, width, simulator)
+        self.event_generator = EventGenerator(height, width)
         self.active_events = []
 
     def add_drones(self, drones: list):

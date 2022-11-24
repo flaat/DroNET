@@ -104,8 +104,11 @@ class Simulator:
 
         self.network_dispatcher = MediumDispatcher(self)
 
-
     def __set_random_generators(self):
+        """
+
+        @return:
+        """
         if self.seed is not None:
             self.rnd_network = np.random.RandomState(self.seed)
             self.rnd_routing = np.random.RandomState(self.seed)
@@ -116,28 +119,36 @@ class Simulator:
         """ the method creates all the uav entities """
 
         self.__set_random_generators()
-        self.path_manager = utilities.PathManager(config.PATH_FROM_JSON, config.JSONS_PATH_PREFIX, self.seed)
-        self.environment = Environment(simulator=self, width=self.env_width, height=self.env_height)
 
-        self.depot = Depot(simulator=self,
-                           coordinates=self.depot_coordinates,
+        self.path_manager = utilities.PathManager(config.PATH_FROM_JSON, config.JSONS_PATH_PREFIX, self.seed)
+
+        self.environment = Environment(width=self.env_width,
+                                       height=self.env_height)
+
+        self.depot = Depot(coordinates=self.depot_coordinates,
                            communication_range=self.depot_com_range)
 
         self.drones = []
 
         # drone 0 is the first
         for i in range(self.n_drones):
-
-            self.drones.append(Drone(simulator=self, identifier=i, path=self.path_manager.path(i, self), depot=self.depot))
+            self.drones.append(Drone(identifier=i,
+                                     path=self.path_manager.path(i, self),
+                                     depot=self.depot))
 
         self.environment.drones = self.drones
         self.environment.depot = self.depot
 
         # Set the maximum distance between the drones and the depot
-        self.max_dist_drone_depot = utilities.euclidean_distance(self.depot.coordinates, (self.env_width, self.env_height))
+        self.max_dist_drone_depot = utilities.euclidean_distance(self.depot.coordinates,
+                                                                 (self.env_width,
+                                                                  self.env_height))
 
         if self.show_plot or config.SAVE_PLOT:
-            self.draw_manager = pp_draw.PathPlanningDrawer(env=self.environment, simulator=self, padding=25, borders=True)
+            self.draw_manager = pp_draw.PathPlanningDrawer(env=self.environment,
+                                                           simulator=self,
+                                                           padding=25,
+                                                           borders=True)
 
     def __sim_name(self):
         """
@@ -157,12 +168,10 @@ class Simulator:
 
         # delay draw
         if config.WAIT_SIM_STEP > 0:
-
             time.sleep(config.WAIT_SIM_STEP)
 
         # drones plot
         for drone in self.drones:
-
             self.draw_manager.draw_drone(drone=drone, cur_step=self.cur_step)
 
         # depot plot
@@ -170,7 +179,6 @@ class Simulator:
 
         # events
         for event in self.environment.active_events:
-
             self.draw_manager.draw_event(event)
 
         # draw simulation info
@@ -192,7 +200,7 @@ class Simulator:
             cells.add(int(cell_index[0]))
 
         for cell, cell_center in utilities.TraversedCells.all_centers(self.env_width, self.env_height,
-                                                                          self.prob_size_cell):
+                                                                      self.prob_size_cell):
 
             index_cell = int(cell[0])
             old_vals = self.cell_prob_map[index_cell]
@@ -222,7 +230,6 @@ class Simulator:
             self.event_generator.handle_events_generation(cur_step, self.drones)
 
             for drone in self.drones:
-
                 # 1. update expired packets on drone buffers
                 # 2. try routing packets vs other drones or depot
                 # 3. actually move the drone towards next waypoint or depot
@@ -233,15 +240,14 @@ class Simulator:
 
             # in case we need probability map
             if config.ENABLE_PROBABILITIES:
-
                 self.increase_meetings_probs(self.drones, cur_step)
 
             if self.show_plot or config.SAVE_PLOT:
                 self.__plot()
 
         if config.DEBUG:
-
-            print("End of simulation, sim time: " + str((self.cur_step + 1) * self.time_step_duration) + " sec, #iteration: " + str(cur_step + 1))
+            print("End of simulation, sim time: " + str(
+                (self.cur_step + 1) * self.time_step_duration) + " sec, #iteration: " + str(cur_step + 1))
 
     def close(self):
         """ do some stuff at the end of simulation"""
@@ -262,11 +268,10 @@ class Simulator:
         delivery_time_list = []
 
         for timestep, source_drone, packet in self.logger.drones_packets_to_depot:
-
             delivery_time = packet.time_delivery - packet.time_step_creation
             delivery_time_list.append(delivery_time)
 
-        self.metrics.packet_mean_delivery_time = sum(delivery_time_list)/len(delivery_time_list)
+        self.metrics.packet_mean_delivery_time = sum(delivery_time_list) / len(delivery_time_list)
 
         self.metrics.drones_packets_to_depot = len(self.logger.drones_packets_to_depot)
         self.metrics.all_packets_correctly_sent_by_drones = len(self.logger.drones_packets)
@@ -277,11 +282,9 @@ class Simulator:
         @return:
         """
         if metrics:
-
             print(self.metrics)
 
         if logger:
-
             print(self.logger)
 
     def save_metrics(self, filename_path, save_pickle=False):

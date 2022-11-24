@@ -6,8 +6,8 @@ class Depot(Entity):
     The depot is an Entity
     """
 
-    def __init__(self, simulator, coordinates: tuple, communication_range:float):
-        super().__init__(simulator=simulator, identifier=id(self), coordinates=coordinates)
+    def __init__(self, coordinates: tuple, communication_range: float):
+        super().__init__(identifier=id(self), coordinates=coordinates)
 
         self.communication_range = communication_range
         self.__buffer = list()  # also with duplicated packets

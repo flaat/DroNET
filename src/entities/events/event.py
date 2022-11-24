@@ -4,9 +4,9 @@ from src.entities.simulated_entities import Entity, SimulatedEntity
 
 class EventGenerator(SimulatedEntity):
 
-    def __init__(self, height, width, simulator):
+    def __init__(self, height, width):
         """ uniform event generator """
-        super().__init__(simulator)
+        super().__init__()
         self.height = height
         self.width = width
 
@@ -21,13 +21,12 @@ class EventGenerator(SimulatedEntity):
         pass
 
 
-
-
 class Event(Entity):
     """
     An Event object is any kind of event that the drone detects in the Area-of-Interest
     """
-    def __init__(self, simulator, coordinates: tuple, current_time: int, deadline=None):
+
+    def __init__(self, coordinates: tuple, current_time: int, deadline=None):
         """
         @param coordinates:
         @param current_time:
@@ -35,7 +34,7 @@ class Event(Entity):
         @param deadline:
         """
 
-        super().__init__(simulator=simulator, identifier=id(self), coordinates=coordinates)
+        super().__init__(identifier=id(self), coordinates=coordinates)
         self.current_time = current_time
 
         # One can specify the deadline or just consider as deadline now + EVENTS_DURATION
@@ -46,7 +45,6 @@ class Event(Entity):
         # add metrics: all the events generated during the simulation
         # GENERATED_EVENTS
         if not coordinates == (-1, -1) and not current_time == -1:
-
             pass
 
     @property
@@ -89,6 +87,6 @@ class Event(Entity):
             "Event_coordinates": self.coordinates,
             "Event_generation_time": self.current_time,
             "Event_deadline": self.deadline
-            }
+        }
 
         return event_dict

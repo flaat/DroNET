@@ -4,16 +4,13 @@ class SimulatedEntity:
     of the simulation. No class of this type is directly instantiable.
     """
 
-    def __init__(self, simulator):
-        self.simulator = simulator
-
 
 # ------------------ Entities ----------------------
 class Entity(SimulatedEntity):
     """ An entity in the environment, e.g. Drone, Event, Packet. It extends SimulatedEntity. """
 
-    def __init__(self, identifier: int, coordinates: tuple, simulator):
-        super().__init__(simulator)
+    def __init__(self, identifier: int, coordinates: tuple):
+        super().__init__()
         self.identifier = identifier  # the id of the entity
         self.coordinates = coordinates  # the coordinates of the entity on the map
 

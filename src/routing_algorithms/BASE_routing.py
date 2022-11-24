@@ -11,21 +11,16 @@ class BaseRouting(metaclass=abc.ABCMeta):
     This class is used as baseclass to build new routing protocols.
     """
 
-    def __init__(self, simulator, drone):
+    def __init__(self, drone, network_dispatcher):
         """
         @param drone: The drone that needs to perform routing
         @param simulator: The Simulator instance
         """
 
         self.drone = drone
-        self.simulator = simulator
-
-        if self.simulator.communication_error_type == config.ChannelError.GAUSSIAN:
-            self.buckets_probability = self.__init_guassian()
-
         self.current_n_transmission = 0
         self.hello_messages = {}  # { drone_id : most recent hello packet}
-        self.network_disp = simulator.network_dispatcher
+        self.network_dispatcher = network_dispatcher
         self.no_transmission = False
 
     @abc.abstractmethod
@@ -58,10 +53,9 @@ class BaseRouting(metaclass=abc.ABCMeta):
             self.no_transmission = True
             self.drone.accept_packets([packet])
 
-            null_event = Event(self.simulator, (-1, -1), -1)
+            null_event = Event((-1, -1), -1)
 
-            ack_packet = ACKPacket(simulator=self.simulator,
-                                   source_drone=self.drone,
+            ack_packet = ACKPacket(source_drone=self.drone,
                                    destination_drone=source_drone,
                                    acked_packet=packet,
                                    event_ref=null_event)
@@ -87,12 +81,10 @@ class BaseRouting(metaclass=abc.ABCMeta):
         if self.simulator.cur_step % config.HELLO_DELAY != 0:
             return 0
 
-        null_event = Event(simulator=self.simulator,
-                           coordinates=(-1, -1),
+        null_event = Event(coordinates=(-1, -1),
                            current_time=-1)
 
-        hello_packet = HelloPacket(simulator=self.simulator,
-                                   source_drone=self.drone,
+        hello_packet = HelloPacket(source_drone=self.drone,
                                    current_position=self.drone.coordinates,
                                    current_speed=self.drone.speed,
                                    next_target=self.drone.next_target(),
@@ -135,7 +127,7 @@ class BaseRouting(metaclass=abc.ABCMeta):
             return 0
 
         # FLOW 3: find the best relay through the routing algorithm
-        if self.simulator.cur_step % self.simulator.drone_retransmission_delta == 0:
+        else:
 
             opt_neighbors = []
 
@@ -145,6 +137,7 @@ class BaseRouting(metaclass=abc.ABCMeta):
 
                 # check if packet is too old, if so discard the packet
                 if hello_packet.time_step_creation < self.simulator.cur_step - config.OLD_HELLO_PACKET:
+
                     continue
 
                 opt_neighbors.append((hello_packet, hello_packet.source_drone))
@@ -232,7 +225,7 @@ class BaseRouting(metaclass=abc.ABCMeta):
         @return:
         """
 
-        self.simulator.network_dispatcher.send_packet_to_medium(packet_to_send=packet_to_send,
+        self.network_dispatcher.send_packet_to_medium(packet_to_send=packet_to_send,
                                                                 source_drone=source_drone,
                                                                 destination_drone=destination_drone,
                                                                 to_send_ts=self.simulator.cur_step + config.LIL_DELTA)
