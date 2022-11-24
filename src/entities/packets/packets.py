@@ -32,16 +32,6 @@ class Packet(Entity):
         self.is_move_packet = None
 
     @property
-    def distance_from_depot(self):
-        """
-        This function computes the euclidean distance between the Depot and
-        the current packet
-        @return: A float number representing the distance between the Depot and the current packet
-        """
-
-        return utilities.euclidean_distance(self.simulator.depot_coordinates, self.coordinates)
-
-    @property
     def is_expired(self):
         """
         A Packet expires if the deadline of the event expires, or the maximum TTL is reached
