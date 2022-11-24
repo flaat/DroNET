@@ -228,7 +228,7 @@ class BaseRouting(metaclass=abc.ABCMeta):
         self.network_dispatcher.send_packet_to_medium(packet_to_send=packet_to_send,
                                                                 source_drone=source_drone,
                                                                 destination_drone=destination_drone,
-                                                                to_send_ts=self.simulator.cur_step + config.LIL_DELTA)
+                                                                to_send_ts=source_drone.clock + config.LIL_DELTA)
 
     def gaussian_success_handler(self, drones_distance):
         """ get the probability of the drone bucket """

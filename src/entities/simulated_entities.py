@@ -1,6 +1,7 @@
 
 class SimulatedEntity:
-    """ A simulated entity keeps track of the simulation object, where you can access all the parameters
+    """
+    A simulated entity keeps track of the simulation object, where you can access all the parameters
     of the simulation. No class of this type is directly instantiable.
     """
     def __init__(self):
@@ -9,15 +10,22 @@ class SimulatedEntity:
 
     @property
     def clock(self):
+        """
+
+        @return:
+        """
 
         return self._clock
 
     @clock.setter
     def clock(self, timestep):
+        """
+
+        @param timestep:
+        @return:
+        """
 
         self._clock = timestep
-
-
 
 
 # ------------------ Entities ----------------------

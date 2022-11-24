@@ -48,7 +48,7 @@ class Packet(Entity):
         @return: True if the packet is expired False otherwise
         """
 
-        return self.simulator.cur_step > self.event_ref.deadline
+        return self.clock > self.event_ref.deadline
 
     def to_json(self):
         """ return the json repr of the obj """

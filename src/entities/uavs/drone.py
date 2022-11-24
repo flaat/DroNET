@@ -95,7 +95,7 @@ class Drone(Entity):
         """
 
         generated_event = Event(coordinates=self.coordinates,
-                                current_time=self.simulator.cur_step)
+                                current_time=self.clock)
 
         packet = generated_event.as_packet(self)
 
@@ -106,7 +106,7 @@ class Drone(Entity):
         # store the events that are missing due to movement routing
         else:
 
-            self.simulator.logger.add_event_not_listened(timestep=self.simulator.cur_step, event=generated_event)
+            self.simulator.logger.add_event_not_listened(timestep=self.clock, event=generated_event)
 
     def accept_packets(self, packets):
         """

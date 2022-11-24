@@ -53,7 +53,7 @@ class Event(Entity):
         Check if the Event is expired
         @return: True if the event is expired False otherwise
         """
-        return self.simulator.cur_step > self.deadline
+        return self.clock > self.deadline
 
     def as_packet(self, drone):
         """
@@ -65,7 +65,7 @@ class Event(Entity):
 
         # Notice: called only when a packet is created
 
-        packet = DataPacket(simulator=self.simulator, event_ref=self)
+        packet = DataPacket(event_ref=self)
         packet.add_hop(drone)
 
         return packet
