@@ -14,9 +14,9 @@ class BaseRouting(metaclass=abc.ABCMeta):
     def __init__(self, drone, network_dispatcher):
         """
         @param drone: The drone that needs to perform routing
-        @param simulator: The Simulator instance
         """
 
+        self.communication_error_type = None
         self.drone = drone
         self.current_n_transmission = 0
         self.hello_messages = {}  # { drone_id : most recent hello packet}
@@ -78,7 +78,7 @@ class BaseRouting(metaclass=abc.ABCMeta):
         """
 
         # still not time to communicate
-        if self.simulator.cur_step % config.HELLO_DELAY != 0:
+        if self.drone.clock % config.HELLO_DELAY != 0:
             return 0
 
         null_event = Event(coordinates=(-1, -1),
@@ -136,8 +136,7 @@ class BaseRouting(metaclass=abc.ABCMeta):
                 hello_packet = self.hello_messages[hello_packet_id]
 
                 # check if packet is too old, if so discard the packet
-                if hello_packet.time_step_creation < self.simulator.cur_step - config.OLD_HELLO_PACKET:
-
+                if hello_packet.time_step_creation < self.drone.clock - config.OLD_HELLO_PACKET:
                     continue
 
                 opt_neighbors.append((hello_packet, hello_packet.source_drone))
@@ -187,20 +186,7 @@ class BaseRouting(metaclass=abc.ABCMeta):
 
         assert drones_distance <= self.drone.communication_range
 
-        if no_error:
-            return True
-
-        if self.simulator.communication_error_type == config.ChannelError.NO_ERROR:
-
-            return True
-
-        elif self.simulator.communication_error_type == config.ChannelError.UNIFORM:
-
-            return self.simulator.rnd_routing.rand() <= self.simulator.drone_communication_success
-
-        elif self.simulator.communication_error_type == config.ChannelError.GAUSSIAN:
-
-            return self.simulator.rnd_routing.rand() <= self.gaussian_success_handler(drones_distance)
+        return True
 
     def broadcast_message(self, packet_to_send, source_drone, destination_drones):
         """
@@ -226,14 +212,9 @@ class BaseRouting(metaclass=abc.ABCMeta):
         """
 
         self.network_dispatcher.send_packet_to_medium(packet_to_send=packet_to_send,
-                                                                source_drone=source_drone,
-                                                                destination_drone=destination_drone,
-                                                                to_send_ts=source_drone.clock + config.LIL_DELTA)
-
-    def gaussian_success_handler(self, drones_distance):
-        """ get the probability of the drone bucket """
-        bucket_id = int(drones_distance / self.radius_corona) * self.radius_corona
-        return self.buckets_probability[bucket_id] * config.GAUSSIAN_SCALE
+                                                      source_drone=source_drone,
+                                                      destination_drone=destination_drone,
+                                                      to_send_ts=source_drone.clock + config.LIL_DELTA)
 
     def transfer_to_depot(self, depot):
         """
