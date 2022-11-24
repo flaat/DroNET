@@ -1,7 +1,8 @@
 from src.entities.depot.depots import Depot
 from src.entities.events.event import EventGenerator
 from src.entities.simulated_entities import  SimulatedEntity
-
+import numpy as np
+from src.utilities import config
 
 class Environment(SimulatedEntity):
     """ The environment is an entity that represents the area of interest on which events are generated.
@@ -16,8 +17,8 @@ class Environment(SimulatedEntity):
         self.drones = None
         self.width = width
         self.height = height
-
-        self.event_generator = EventGenerator(height, width)
+        self.rnd_env = np.random.RandomState(config.SEED)
+        self.event_generator = EventGenerator(height, width, self.rnd_env)
         self.active_events = []
 
     def add_drones(self, drones: list):

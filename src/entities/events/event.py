@@ -4,16 +4,17 @@ from src.entities.simulated_entities import Entity, SimulatedEntity
 
 class EventGenerator(SimulatedEntity):
 
-    def __init__(self, height, width):
+    def __init__(self, height, width, random_generator):
         """ uniform event generator """
         super().__init__()
         self.height = height
         self.width = width
+        self.random_generator = random_generator
 
     def uniform_event_generator(self):
         """ generates an event in the map """
-        x = self.simulator.rnd_env.randint(0, self.height)
-        y = self.simulator.rnd_env.randint(0, self.width)
+        x = self.random_generator.randint(0, self.height)
+        y = self.random_generator.randint(0, self.width)
         return x, y
 
     def poisson_event_generator(self):

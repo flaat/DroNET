@@ -112,7 +112,6 @@ class Simulator:
         if self.seed is not None:
             self.rnd_network = np.random.RandomState(self.seed)
             self.rnd_routing = np.random.RandomState(self.seed)
-            self.rnd_env = np.random.RandomState(self.seed)
             self.rnd_event = np.random.RandomState(self.seed)
 
     def __set_simulation(self):
