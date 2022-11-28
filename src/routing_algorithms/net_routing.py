@@ -1,10 +1,12 @@
-
 import src.utilities.utilities as util
-from src.entities.packets.packets import DataPacket
-from src.simulation.metrics import Metrics
+from src.entities.packets.packets import HelloPacket, DataPacket
+from src.entities.uavs.drone import Drone
 
-# TODO: Write Docs
+#TODO: does this simulate (in an extremely simplistic way) the network stack?
 
+"""
+The MediumDispatcher simulates the network stack.
+"""
 
 class MediumDispatcher:
 
@@ -16,7 +18,7 @@ class MediumDispatcher:
         self.packets = []
         self.simulator = simulator
 
-    def send_packet_to_medium(self, packet_to_send, source_drone, destination_drone, to_send_ts):
+    def send_packet_to_medium(self, packet_to_send: HelloPacket, source_drone: Drone, destination_drone: Drone, to_send_ts: int):
         """
         Simulates sending a packet from one drone to another with a specific timestamp, by inserting these values in
         a list.
@@ -25,7 +27,8 @@ class MediumDispatcher:
         @param packet_to_send: The Packet to send
         @param source_drone: Source Drone
         @param destination_drone: Destination Drone
-        @param to_send_ts:
+        @param to_send_ts: time stamp to send the packet, equal to the timestamp of a drone plus some delay
+        @return: None
         """
 
         if isinstance(packet_to_send, DataPacket):
@@ -38,7 +41,7 @@ class MediumDispatcher:
 
         self.packets.append((packet_to_send, source_drone, destination_drone, to_send_ts))
 
-    def run_medium(self, current_ts):
+    def run_medium(self, current_ts: int):
         """
         Delivers the messages found in the packets list to their respective destinations. The following checks are
         done before performing a delivery:
@@ -48,8 +51,6 @@ class MediumDispatcher:
 
         @param current_ts: current timestamp
         @return: None
-        @param current_ts:
-        @return:
         """
 
         indices_to_drop = []
@@ -85,6 +86,4 @@ class MediumDispatcher:
         self_packets_deep_copy = [self_packets_deep_copy[i] for i in range(len(self_packets_deep_copy)) if i not in indices_to_drop]
 
         self.packets += self_packets_deep_copy
-        # TODO: unroll this and make it more readable.
-
 

@@ -13,13 +13,15 @@ import math
 import time
 
 """
-This file contains the Simulation class. It allows to explicit all the relevant parameters of the simulation,
-as default all the parameters are set to be those in the config file. For extensive experimental campains, 
+This file contains the Simulation class. It allows to specify all the relevant parameters of the simulation,
+by default all the parameters are set to be those in the config file. For extensive experimental campains, 
 you can initialize the Simulator with non default values. 
 """
 
 
 class Simulator:
+
+    # TODO: document each and every variable? should we only document the implementation?
 
     def __init__(self,
                  len_simulation=config.SIM_DURATION,
@@ -96,6 +98,8 @@ class Simulator:
         self.start = time.time()
         self.event_generator = utilities.EventGenerator(self)
 
+    # TODO: why is this in a separate function? it just assigns a parameter. Remove it?
+
     def __setup_net_dispatcher(self):
         """
 
@@ -104,8 +108,11 @@ class Simulator:
 
         self.network_dispatcher = MediumDispatcher(self)
 
-
     def __set_random_generators(self):
+        """
+        Sets a random state for each component based on the seed.
+        @return:
+        """
         if self.seed is not None:
             self.rnd_network = np.random.RandomState(self.seed)
             self.rnd_routing = np.random.RandomState(self.seed)
@@ -113,7 +120,11 @@ class Simulator:
             self.rnd_event = np.random.RandomState(self.seed)
 
     def __set_simulation(self):
-        """ the method creates all the uav entities """
+        """
+        Method initializes many elements needed for the simulation, like depot and drones. It also checks
+        if the simulation needs to be rendered or not.
+        @return:
+        """
 
         self.__set_random_generators()
         self.path_manager = utilities.PathManager(config.PATH_FROM_JSON, config.JSONS_PATH_PREFIX, self.seed)
@@ -127,42 +138,47 @@ class Simulator:
 
         # drone 0 is the first
         for i in range(self.n_drones):
-
-            self.drones.append(Drone(simulator=self, identifier=i, path=self.path_manager.path(i, self), depot=self.depot))
+            self.drones.append(
+                Drone(simulator=self, identifier=i, path=self.path_manager.path(i, self), depot=self.depot))
 
         self.environment.drones = self.drones
         self.environment.depot = self.depot
 
         # Set the maximum distance between the drones and the depot
-        self.max_dist_drone_depot = utilities.euclidean_distance(self.depot.coordinates, (self.env_width, self.env_height))
+        self.max_dist_drone_depot = utilities.euclidean_distance(self.depot.coordinates,
+                                                                 (self.env_width, self.env_height))
 
         if self.show_plot or config.SAVE_PLOT:
-            self.draw_manager = pp_draw.PathPlanningDrawer(env=self.environment, simulator=self, padding=25, borders=True)
+            self.draw_manager = pp_draw.PathPlanningDrawer(env=self.environment, simulator=self, padding=25,
+                                                           borders=True)
 
-    def __sim_name(self):
+    #TODO: specify the return type two times like in this example?
+
+    def __sim_name(self) -> str:
         """
         Returns the identification name for
         the current simulation. It is useful to print
         the simulation progress
-        @return:
+        @return: str
         """
 
         return f"SIMULATION_SEED: {str(self.seed)} drones: {str(self.n_drones)} "
 
     def __plot(self):
-        """ plot the simulation """
+        """
+        renders all the components of the simulation the screen, namely the drones, depot and relative labels.
+        @return:
+        """
 
         if self.cur_step % config.SKIP_SIM_STEP != 0:
             return
 
         # delay draw
         if config.WAIT_SIM_STEP > 0:
-
             time.sleep(config.WAIT_SIM_STEP)
 
         # drones plot
         for drone in self.drones:
-
             self.draw_manager.draw_drone(drone=drone, cur_step=self.cur_step)
 
         # depot plot
@@ -170,7 +186,6 @@ class Simulator:
 
         # events
         for event in self.environment.active_events:
-
             self.draw_manager.draw_event(event)
 
         # draw simulation info
@@ -178,6 +193,7 @@ class Simulator:
 
         # rendering phase
         file_name = self.sim_save_file + str(self.cur_step) + ".png"
+        # TODO: python fails if SAVE_PLOT flag is set to True.
         self.draw_manager.update(show=self.show_plot, save=config.SAVE_PLOT, filename=file_name)
 
     def increase_meetings_probs(self, drones, cur_step):
@@ -192,7 +208,7 @@ class Simulator:
             cells.add(int(cell_index[0]))
 
         for cell, cell_center in utilities.TraversedCells.all_centers(self.env_width, self.env_height,
-                                                                          self.prob_size_cell):
+                                                                      self.prob_size_cell):
 
             index_cell = int(cell[0])
             old_vals = self.cell_prob_map[index_cell]
@@ -222,7 +238,6 @@ class Simulator:
             self.event_generator.handle_events_generation(cur_step, self.drones)
 
             for drone in self.drones:
-
                 # 1. update expired packets on drone buffers
                 # 2. try routing packets vs other drones or depot
                 # 3. actually move the drone towards next waypoint or depot
@@ -233,18 +248,20 @@ class Simulator:
 
             # in case we need probability map
             if config.ENABLE_PROBABILITIES:
-
                 self.increase_meetings_probs(self.drones, cur_step)
 
             if self.show_plot or config.SAVE_PLOT:
                 self.__plot()
 
         if config.DEBUG:
-
-            print("End of simulation, sim time: " + str((self.cur_step + 1) * self.time_step_duration) + " sec, #iteration: " + str(cur_step + 1))
+            print("End of simulation, sim time: " + str(
+                (self.cur_step + 1) * self.time_step_duration) + " sec, #iteration: " + str(cur_step + 1))
 
     def close(self):
-        """ do some stuff at the end of simulation"""
+        """
+        Computes, prints and saves all the metrics relative to the simulation.
+        @return:
+        """
         print("Closing simulation")
 
         self.compute_final_metrics()
@@ -253,50 +270,54 @@ class Simulator:
 
     def compute_final_metrics(self):
         """
-
+        Computes some metrics that will be useful to the user once the simulation ends.
         @return:
         """
-
+        # TODO: why is this here if by default the logger is not printed in the print_metrics function?
         print(self.logger)
 
         delivery_time_list = []
 
+        # TODO: why make the delivery_time variable? just .append(calculation)
         for timestep, source_drone, packet in self.logger.drones_packets_to_depot:
-
             delivery_time = packet.time_delivery - packet.time_step_creation
             delivery_time_list.append(delivery_time)
 
-        self.metrics.packet_mean_delivery_time = sum(delivery_time_list)/len(delivery_time_list)
+        self.metrics.packet_mean_delivery_time = sum(delivery_time_list) / len(delivery_time_list)
 
         self.metrics.drones_packets_to_depot = len(self.logger.drones_packets_to_depot)
         self.metrics.all_packets_correctly_sent_by_drones = len(self.logger.drones_packets)
 
+    # TODO: why call it print metrics if it also prints logs?
+
     def print_metrics(self, metrics: bool = True, logger: bool = False):
         """
-
+        Prints the contents of metrics or logger classes.
         @return:
         """
         if metrics:
-
             print(self.metrics)
 
         if logger:
-
             print(self.logger)
 
+    # TODO: self.metrics.save(...) does not exist, implement or remove?
+
     def save_metrics(self, filename_path, save_pickle=False):
-        """ add signature """
+        """
+            function logs all metrics in files either in .json or .pickle format.
+        """
         self.metrics.save_as_json(filename_path + ".json")
         if save_pickle:
             self.metrics.save(filename_path + ".pickle")
 
+    # TODO: function is never used, plus self.metrics.score() is not defined, finish implementation or remove function?
     def score(self):
-        """ returns a score for the exectued simulation: 
-
+        """ returns a score for the exectued simulation:
                 sum( event delays )  / number of events
-
             Notice that, expired or not found events will be counted with a max_delay
         """
+        # TODO: function score does not exist.
         score = round(self.metrics.score(), 2)
         print("Score sim " + self.simulation_name + ":", score)
         return score
