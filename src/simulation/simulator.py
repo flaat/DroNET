@@ -22,7 +22,7 @@ you can initialize the Simulator with non default values.
 class Simulator:
 
     # TODO: document each and every variable? should we only document the implementation?
-
+    # remove all config parameters and substitute them with a configurator object
     def __init__(self,
                  len_simulation=config.SIM_DURATION,
                  time_step_duration=config.TS_DURATION,
