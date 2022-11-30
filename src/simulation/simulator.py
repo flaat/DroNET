@@ -81,6 +81,8 @@ class Simulator:
         self.sim_save_file = config.SAVE_PLOT_DIR + self.__sim_name()
         self.path_to_depot = None
 
+        self.clock = Clock()
+
         # Setup vari
         # for stats
         self.metrics = Metrics()
@@ -135,6 +137,7 @@ class Simulator:
 
         self.depot = Depot(coordinates=self.depot_coordinates,
                            communication_range=self.depot_com_range,
+                           clock=self.clock,
                            logger=self.logger)
 
         self.drones = []
@@ -145,6 +148,7 @@ class Simulator:
                                      path=self.path_manager.path(i, self),
                                      depot=self.depot,
                                      network_dispatcher=self.network_dispatcher,
+                                     clock=self.clock,
                                      logger=self.logger))
 
         self.environment.drones = self.drones
@@ -161,7 +165,7 @@ class Simulator:
                                                            padding=25,
                                                            borders=True)
 
-    #TODO: specify the return type two times like in this example?
+    # TODO: specify the return type two times like in this example?
 
     def __sim_name(self) -> str:
         """
@@ -236,7 +240,8 @@ class Simulator:
 
         for cur_step in tqdm(range(self.len_simulation)):
 
-            self.depot.clock = cur_step
+            self.clock.next_time_step()
+
             self.cur_step = cur_step
             # check for new events and remove the expired ones from the environment
             # self.environment.update_events(cur_step)
@@ -248,19 +253,16 @@ class Simulator:
             self.event_generator.handle_events_generation(cur_step, self.drones)
 
             for drone in self.drones:
-
                 # 1. update expired packets on drone buffers
                 # 2. try routing packets vs other drones or depot
                 # 3. actually move the drone towards next waypoint or depot
 
-                drone.clock = cur_step
                 drone.update_packets()
                 drone.routing(self.drones)
                 drone.move(self.time_step_duration)
 
             # in case we need probability map
             if config.ENABLE_PROBABILITIES:
-
                 self.increase_meetings_probs(self.drones, cur_step)
 
             if self.show_plot or config.SAVE_PLOT:
@@ -287,7 +289,6 @@ class Simulator:
         @return:
         """
         # TODO: why is this here if by default the logger is not printed in the print_metrics function?
-        print(self.logger)
 
         delivery_time_list = []
 
@@ -309,11 +310,9 @@ class Simulator:
         @return:
         """
         if metrics:
-
             print(self.metrics)
 
         if logger:
-
             print(self.logger)
 
     # TODO: self.metrics.save(...) does not exist, implement or remove?
@@ -326,14 +325,35 @@ class Simulator:
         if save_pickle:
             self.metrics.save(filename_path + ".pickle")
 
-    # TODO: function is never used, plus self.metrics.score() is not defined, finish implementation or remove function?
-    def score(self):
-        """ returns a score for the exectued simulation:
-                sum( event delays )  / number of events
 
-            Notice that, expired or not found events will be counted with a max_delay
+class Clock:
+
+    def __init__(self):
+        self._current_time = -1
+
+    @property
+    def current_time(self):
         """
-        # TODO: function score does not exist.
-        score = round(self.metrics.score(), 2)
-        print("Score sim " + self.simulation_name + ":", score)
-        return score
+        Returns the current time
+        @return:
+        """
+
+        return self._current_time
+
+    @current_time.setter
+    def current_time(self, a):
+        """
+
+        @param a:
+        @return:
+        """
+
+        raise Exception("It is not possible to modify the current time")
+
+    def next_time_step(self):
+        """
+
+        @return:
+        """
+
+        self._current_time += 1

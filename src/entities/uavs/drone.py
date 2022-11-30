@@ -8,9 +8,9 @@ from src.utilities import config, utilities
 
 class Drone(Entity):
 
-    def __init__(self, identifier: int, path: list, depot: Depot, logger=None, network_dispatcher=None):
+    def __init__(self, identifier: int, path: list, depot: Depot, clock, logger=None, network_dispatcher=None):
 
-        super().__init__(identifier=identifier, coordinates=path[0], logger=logger)
+        super().__init__(identifier=identifier, coordinates=path[0], clock=clock, logger=logger)
 
         self.depot = depot
         self.path = path
@@ -95,7 +95,8 @@ class Drone(Entity):
         """
 
         generated_event = Event(coordinates=self.coordinates,
-                                current_time=self.clock)
+                                current_time=self.clock.current_time,
+                                clock=self.clock)
 
         packet = generated_event.as_packet(self)
 
@@ -106,7 +107,7 @@ class Drone(Entity):
         # store the events that are missing due to movement routing
         else:
 
-            self.logger.add_event_not_listened(timestep=self.clock, event=generated_event)
+            self.logger.add_event_not_listened(timestep=self.clock.current_time, event=generated_event)
 
     def accept_packets(self, packets):
         """
@@ -124,7 +125,7 @@ class Drone(Entity):
 
                 self.__buffer.append(packet)
 
-    def routing(self, drones):
+    def routing(self, drones: list):
         """
         It Starts the routing process
         @param drones:
@@ -140,7 +141,6 @@ class Drone(Entity):
         Move the drone to the next point if self.move_routing is false, else it moves towards the depot.
         time -> time_step_duration (how much time between two simulation frame)
         """
-
         if self.move_routing or self.come_back_to_mission:
             # metrics: number of time steps on active routing (movement) a counter that is incremented each time
             # drone is moving to the depot for active routing, i.e., move_routing = True

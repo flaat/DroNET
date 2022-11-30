@@ -6,8 +6,8 @@ class Depot(Entity):
     The depot is an Entity
     """
 
-    def __init__(self, coordinates: tuple, communication_range: float, logger=None):
-        super().__init__(identifier=id(self), coordinates=coordinates, logger=logger)
+    def __init__(self, coordinates: tuple, communication_range: float, clock, logger=None):
+        super().__init__(identifier=id(self), coordinates=coordinates, clock=clock, logger=logger)
 
         self.communication_range = communication_range
         self.__buffer = list()  # also with duplicated packets
@@ -34,7 +34,7 @@ class Depot(Entity):
         for packet in packets_to_offload:
             # add metrics: all the packets notified to the depot
 
-            self.logger.add_drones_packet_to_depot(timestep=self.clock,
+            self.logger.add_drones_packet_to_depot(timestep=self.clock.current_time,
                                                    packet=packet,
                                                    source_drone=drone)
-            packet.time_delivery = self.clock
+            packet.time_delivery = self.clock.current_time

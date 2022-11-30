@@ -6,7 +6,7 @@ class EventGenerator(SimulatedEntity):
 
     def __init__(self, height, width, random_generator):
         """ uniform event generator """
-        super().__init__()
+        super().__init__(clock=None)
         self.height = height
         self.width = width
         self.random_generator = random_generator
@@ -27,7 +27,7 @@ class Event(Entity):
     An Event object is any kind of event that the drone detects in the Area-of-Interest
     """
 
-    def __init__(self, coordinates: tuple, current_time: int, deadline=None):
+    def __init__(self, coordinates: tuple, current_time: int, clock, deadline=None):
         """
         @param coordinates:
         @param current_time:
@@ -35,7 +35,7 @@ class Event(Entity):
         @param deadline:
         """
 
-        super().__init__(identifier=id(self), coordinates=coordinates)
+        super().__init__(identifier=id(self), coordinates=coordinates, clock=clock)
         self.current_time = current_time
 
         # One can specify the deadline or just consider as deadline now + EVENTS_DURATION
@@ -66,7 +66,7 @@ class Event(Entity):
 
         # Notice: called only when a packet is created
 
-        packet = DataPacket(event_ref=self)
+        packet = DataPacket(clock=self.clock, event_ref=self)
         packet.add_hop(drone)
 
         return packet

@@ -11,7 +11,7 @@ class Environment(SimulatedEntity):
      a certain probability."""
 
     def __init__(self, width, height):
-        super().__init__()
+        super().__init__(clock=None)
 
         self.depot = None
         self.drones = None
