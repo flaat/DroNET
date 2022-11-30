@@ -127,29 +127,38 @@ class Simulator:
         """
 
         self.__set_random_generators()
-        self.path_manager = utilities.PathManager(config.PATH_FROM_JSON, config.JSONS_PATH_PREFIX, self.seed)
-        self.environment = Environment(simulator=self, width=self.env_width, height=self.env_height)
 
-        self.depot = Depot(simulator=self,
-                           coordinates=self.depot_coordinates,
-                           communication_range=self.depot_com_range)
+        self.path_manager = utilities.PathManager(config.PATH_FROM_JSON, config.JSONS_PATH_PREFIX, self.seed)
+
+        self.environment = Environment(width=self.env_width,
+                                       height=self.env_height)
+
+        self.depot = Depot(coordinates=self.depot_coordinates,
+                           communication_range=self.depot_com_range,
+                           logger=self.logger)
 
         self.drones = []
 
         # drone 0 is the first
         for i in range(self.n_drones):
-            self.drones.append(
-                Drone(simulator=self, identifier=i, path=self.path_manager.path(i, self), depot=self.depot))
+            self.drones.append(Drone(identifier=i,
+                                     path=self.path_manager.path(i, self),
+                                     depot=self.depot,
+                                     network_dispatcher=self.network_dispatcher,
+                                     logger=self.logger))
 
         self.environment.drones = self.drones
         self.environment.depot = self.depot
 
         # Set the maximum distance between the drones and the depot
         self.max_dist_drone_depot = utilities.euclidean_distance(self.depot.coordinates,
-                                                                 (self.env_width, self.env_height))
+                                                                 (self.env_width,
+                                                                  self.env_height))
 
         if self.show_plot or config.SAVE_PLOT:
-            self.draw_manager = pp_draw.PathPlanningDrawer(env=self.environment, simulator=self, padding=25,
+            self.draw_manager = pp_draw.PathPlanningDrawer(env=self.environment,
+                                                           simulator=self,
+                                                           padding=25,
                                                            borders=True)
 
     #TODO: specify the return type two times like in this example?
@@ -227,6 +236,7 @@ class Simulator:
 
         for cur_step in tqdm(range(self.len_simulation)):
 
+            self.depot.clock = cur_step
             self.cur_step = cur_step
             # check for new events and remove the expired ones from the environment
             # self.environment.update_events(cur_step)
@@ -238,16 +248,19 @@ class Simulator:
             self.event_generator.handle_events_generation(cur_step, self.drones)
 
             for drone in self.drones:
+
                 # 1. update expired packets on drone buffers
                 # 2. try routing packets vs other drones or depot
                 # 3. actually move the drone towards next waypoint or depot
 
+                drone.clock = cur_step
                 drone.update_packets()
                 drone.routing(self.drones)
                 drone.move(self.time_step_duration)
 
             # in case we need probability map
             if config.ENABLE_PROBABILITIES:
+
                 self.increase_meetings_probs(self.drones, cur_step)
 
             if self.show_plot or config.SAVE_PLOT:
@@ -296,9 +309,11 @@ class Simulator:
         @return:
         """
         if metrics:
+
             print(self.metrics)
 
         if logger:
+
             print(self.logger)
 
     # TODO: self.metrics.save(...) does not exist, implement or remove?
@@ -315,6 +330,7 @@ class Simulator:
     def score(self):
         """ returns a score for the exectued simulation:
                 sum( event delays )  / number of events
+
             Notice that, expired or not found events will be counted with a max_delay
         """
         # TODO: function score does not exist.
