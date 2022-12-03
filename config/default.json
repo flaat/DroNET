@@ -1,1 +1,42 @@
-// here write default configuration
+{
+  "configName": "Default",
+
+  "simulation": {
+      "simulationName": "Giorgio",
+      "timeStepDuration": 0.150,
+      "simulationLength": 15000,
+      "seed": 20,
+      "numberOfDrones": 5,
+      "environmentWidth": 1500,
+      "environmentHeight": 1500,
+      "showPlot": false,
+      "probSizeCell": 1.875
+  },
+
+  "drone": {
+    "droneCommunicationRange": 200,
+    "droneSensingRange": 0,
+    "droneSpeed": 8,
+    "droneMaxBufferSize": 100,
+    "droneMaxEnergy": 1000000,
+    "droneRetransmissionDelta": 10,
+    "droneCommunicationSuccess": 1
+  },
+
+  "depot": {
+      "depotCommunicationRange": 200,
+      "depotCoordinates": [750, 0]
+  },
+
+  "event": {
+      "eventDuration": 2000,
+      "eventGenerationProbability": 0.8,
+      "eventGenerationDelay": 65
+  },
+
+  "routing": {
+      "packetMaxTimeToLive": 200,
+      "routingAlgorithm": "RND",
+      "channelErrorType": "GAUSSIAN"
+  }
+}

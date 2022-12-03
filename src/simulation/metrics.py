@@ -5,6 +5,7 @@ import seaborn as sb
 import json
 import matplotlib.pyplot as plt
 from dataclasses import dataclass, fields
+import os
 
 """ Metrics class keeps track of all the metrics during all the simulation. """
 
@@ -35,6 +36,10 @@ class Metrics:
         """ save all the metrics into a json file """
         out = str(self)
         js = json.dumps(out)
+
+        print(filename)
+        print(os.getcwd())
+
         f = open(filename, "w")
         f.write(js)
         f.close()
