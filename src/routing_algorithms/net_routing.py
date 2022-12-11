@@ -1,6 +1,7 @@
 import src.utilities.utilities as util
 from src.entities.packets.packets import HelloPacket, DataPacket
 from src.entities.uavs.drone import Drone
+from src.simulation.configurator import Configurator
 
 #TODO: does this simulate (in an extremely simplistic way) the network stack?
 

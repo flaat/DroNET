@@ -98,7 +98,8 @@ class Simulator:
         self.simulation_test_dir = self.simulation_name + "/"
 
         self.start = time.time()
-        self.event_generator = utilities.EventGenerator(self)
+        # self.event_generator = utilities.EventGenerator(self)
+        self.event_generator = utilities.EventGenerator()
 
     # TODO: why is this in a separate function? it just assigns a parameter. Remove it?
 
@@ -161,7 +162,6 @@ class Simulator:
 
         if self.show_plot or config.SAVE_PLOT:
             self.draw_manager = pp_draw.PathPlanningDrawer(env=self.environment,
-                                                           simulator=self,
                                                            padding=25,
                                                            borders=True)
 

@@ -11,6 +11,7 @@ import numpy as np
 import pickle
 from ast import literal_eval as make_tuple
 from src.utilities import random_waypoint_generation
+from src.simulation.configurator import Configurator
 
 
 def compute_circle_path(radius: int, center: tuple) -> list:
@@ -74,14 +75,19 @@ def projection_on_line_between_points(p1, p2, p3):
 # ------------------ Event (Traffic) Generator ----------------------
 class EventGenerator:
 
-    def __init__(self, simulator):
-        """
-        :param simulator: the main simulator object
-        """
-        self.simulator = simulator
-        self.rnd_drones = np.random.RandomState(self.simulator.seed)
-        # for now no random on number of event generated
-        # self.rnd_event = np.random.RandomState(self.simulator.seed)
+    def __init__(self):
+        self.config = Configurator().configuration
+        self.rnd_drones = np.random.RandomState(self.config.seed)
+        self.rnd_event = np.random.RandomState(self.config.seed)
+
+    # def __init__(self, simulator):
+    #     """
+    #     :param simulator: the main simulator object
+    #     """
+    #     self.simulator = simulator
+    #     self.rnd_drones = np.random.RandomState(self.simulator.seed)
+    #     # for now no random on number of event generated
+    #     # self.rnd_event = np.random.RandomState(self.simulator.seed)
 
     def handle_events_generation(self, cur_step: int, drones: list):
         """
@@ -91,7 +97,7 @@ class EventGenerator:
         :param drones: the drones where to sample the event
         :return: nothing
         """
-        if cur_step % self.simulator.event_generation_delay == 0:  # if it's time to generate a new packet
+        if cur_step % self.config.event_generation_delay == 0:  # if it's time to generate a new packet
             # drone that will receive the packet:
             drone_index = self.rnd_drones.randint(0, len(drones))
             drone = drones[drone_index]
@@ -236,10 +242,14 @@ def plot_X(X, plt_title, plt_path, window_size=30, is_avg=True):
 
 class PathToDepot():
 
-    def __init__(self, x_position, simulator):
-        """ for now just a middle channel in the area used by all the drones """
+    def __init__(self, x_position):
         self.x_position = x_position
-        self.simulator = simulator
+        self.config = Configurator().configuration
+
+    # def __init__(self, x_position, simulator):
+    #     """ for now just a middle channel in the area used by all the drones """
+    #     self.x_position = x_position
+    #     self.simulator = simulator
 
     def next_target(self, drone_pos):
         """ based on the drone position return the next target:
@@ -249,7 +259,7 @@ class PathToDepot():
         # only channel mode
         if abs(drone_pos[
                    0] - self.x_position) < 1:  # the drone is already on the channel with an error of 1 meter
-            return self.simulator.depot_coordinates
+            return self.config.depot_coordinates
         else:
             return self.x_position, drone_pos[1]  # the closest point to the channel
 

@@ -2,18 +2,19 @@ from src.drawing import stddraw
 from src.entities.environment.environment import Environment
 from src.utilities import config, utilities
 from collections import defaultdict
+from src.simulation.configurator import Configurator
 
 
 # printer the environment
 class PathPlanningDrawer():
 
     # init the drawer for the path planning
-    def __init__(self, env: Environment, simulator, borders=False, padding=25):
+    def __init__(self, env: Environment, borders=False, padding=25):
         """ init the path plannind drawer """
         self.width = env.width
         self.height = env.height
         self.borders = borders
-        self.simulator = simulator
+        self.config = Configurator().configuration
         print(self.width, self.height)
         stddraw.setXscale(0 - padding, self.width + padding)
         stddraw.setYscale(0 - padding, self.height + padding)
@@ -22,6 +23,21 @@ class PathPlanningDrawer():
 
         self.__grid_plot()
         self.keep_indictor = defaultdict(list)  # list of couples (time stamp, drone)
+
+    # def __init__(self, env: Environment, simulator, borders=False, padding=25):
+    #     """ init the path plannind drawer """
+    #     self.width = env.width
+    #     self.height = env.height
+    #     self.borders = borders
+    #     self.simulator = simulator
+    #     print(self.width, self.height)
+    #     stddraw.setXscale(0 - padding, self.width + padding)
+    #     stddraw.setYscale(0 - padding, self.height + padding)
+    #     if self.borders:
+    #         self.__borders_plot()
+    #
+    #     self.__grid_plot()
+    #     self.keep_indictor = defaultdict(list)  # list of couples (time stamp, drone)
 
     def __channel_to_depot(self):
         stddraw.setPenColor(c=stddraw.LIGHT_GRAY)
@@ -44,13 +60,13 @@ class PathPlanningDrawer():
         self.__reset_pen()
 
     def __grid_plot(self):
-        for i in range(0, self.width, self.simulator.prob_size_cell):
+        for i in range(0, self.width, self.config.prob_size_cell):
             stddraw.setPenColor(c=stddraw.GRAY)
             stddraw.setPenRadius(0.0025)
             # x1, y1, x2, y2
             stddraw.line(i, 0, i, self.height)
             self.__reset_pen()
-        for j in range(0, self.height, self.simulator.prob_size_cell):
+        for j in range(0, self.height, self.config.prob_size_cell):
             stddraw.setPenColor(c=stddraw.GRAY)
             stddraw.setPenRadius(0.0025)
             # x1, y1, x2, y2
@@ -58,9 +74,9 @@ class PathPlanningDrawer():
             self.__reset_pen()
 
         for cell, cell_center in utilities.TraversedCells.all_centers(self.width, self.height,
-                                                                      self.simulator.prob_size_cell):
+                                                                      self.config.prob_size_cell):
             index_cell = int(cell[0])
-            pr = self.simulator.cell_prob_map[index_cell][2]
+            pr = self.config.cell_prob_map[index_cell][2]
             stddraw.text(cell_center[0], cell_center[1], "pr-c: " + str(round(pr, 4)))
 
     def __reset_pen(self):
