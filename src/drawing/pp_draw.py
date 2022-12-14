@@ -1,6 +1,6 @@
 from src.drawing import stddraw
 from src.entities.environment.environment import Environment
-from src.utilities import config, utilities
+from src.utilities import utilities
 from collections import defaultdict
 from src.simulation.configurator import Configurator
 
@@ -97,7 +97,7 @@ class PathPlanningDrawer():
         self.__draw_sensing_range(drone)
         self.__reset_pen()
 
-        if config.IS_SHOW_NEXT_TARGET_VEC:
+        if self.config.show_dir_vec:
             self.__draw_next_target(drone.coordinates, drone.next_target())
 
     def update(self, rate=1,
@@ -107,7 +107,7 @@ class PathPlanningDrawer():
         if self.borders:
             self.__borders_plot()
 
-        if config.ENABLE_PROBABILITIES:
+        if self.config.enable_proabilities:
             self.__grid_plot()
         if show:
             stddraw.show(rate)

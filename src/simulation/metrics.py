@@ -31,7 +31,6 @@ class Metrics:
     time_on_mission: int = 0
     time_on_active_routing: int = 0
 
-    # TODO: this code looks different than that on the HW, it also causes this project to crash =D. check with Flavio.
     def save_as_json(self, filename):
         """ save all the metrics into a json file """
         out = str(self)

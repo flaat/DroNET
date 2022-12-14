@@ -4,8 +4,8 @@ from src.utilities import utilities as util
 
 class QLearningRouting(BaseRouting):
 
-    def __init__(self, drone):
-        BaseRouting.__init__(self, drone)
+    def __init__(self, drone, network_dispatcher):
+        BaseRouting.__init__(self, drone, network_dispatcher)
         self.q_table = {}
         self.taken_actions = {}  # id event : (old_state, old_action)
 

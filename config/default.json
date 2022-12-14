@@ -1,8 +1,25 @@
 {
   "configName": "Default",
 
+  "path drones": {
+    "circlePath": false,
+    "demoPath": false,
+    "pathFromJSON": false,
+    "JSONPathPrefix": "data/tours/RANDOM_missions{}.json",
+    "randomSteps": [250, 500, 700, 900, 1100, 1400],
+    "randomStartPoint": true
+  },
+
+  "drawing": {
+    "plotSimulation": true,
+    "waitSimulationStep": 0,
+    "skipSimulationStep": 5,
+    "drawSize": 700,
+    "showDirectionVector": true
+  },
+
   "simulation": {
-      "simulationName": "Giorgio",
+      "simulationName": "DefaultSim",
       "timeStepDuration": 0.150,
       "simulationLength": 15000,
       "seed": 20,
@@ -10,7 +27,15 @@
       "environmentWidth": 1500,
       "environmentHeight": 1500,
       "showPlot": false,
-      "probSizeCell": 1.875
+      "probSizeCell": 1.875,
+
+      "debug": false,
+      "experimentsDir": "data/evaluation_tests/",
+      "savePlot": false,
+      "savePlotDir": "data/plots/",
+
+      "cellProbSizeR": 1.875,
+      "enableProbabilities": false
   },
 
   "drone": {
@@ -35,8 +60,17 @@
   },
 
   "routing": {
-      "packetMaxTimeToLive": 200,
       "routingAlgorithm": "RND",
-      "channelErrorType": "GAUSSIAN"
+      "channelErrorType": "GAUSSIAN",
+      "communicationSuccessProbability": 1,
+      "gaussianScale": 0.9,
+      "packetMaxTimeToLive": 200,
+      "retransmissionDelay": 10,
+      "helloDelay":5,
+      "receptionGranted": 0.95,
+      "lilDelta": 1,
+      "oldHelloPacket": 50,
+      "rootEvaluationData": "data/evaluation_tests/",
+      "nnModelPath": "data/nnmodels/"
   }
 }

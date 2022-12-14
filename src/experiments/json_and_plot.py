@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.patches as mpatches
 import collections
 import matplotlib
-from src.utilities import config
+from src.simulation.configurator import Configurator
 
 
 from argparse import ArgumentParser
@@ -151,6 +151,9 @@ METRICS_OF_INTEREST = [
 
 
 if __name__ == "__main__":
+
+    config = Configurator().configuration
+
     #set matplotlib font 
     set_font()
 

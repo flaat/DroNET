@@ -1,9 +1,9 @@
 import numpy as np
-
 from src.entities.depot.depots import Depot
 from src.entities.events.event import Event
 from src.entities.simulated_entities import Entity
-from src.utilities import config, utilities
+from src.utilities import utilities
+from src.simulation.configurator import Configurator
 
 
 class Drone(Entity):
@@ -12,13 +12,14 @@ class Drone(Entity):
 
         super().__init__(identifier=identifier, coordinates=path[0], clock=clock, logger=logger)
 
+        self.config = Configurator().configuration
         self.depot = depot
         self.path = path
-        self.speed = config.DRONE_SPEED
-        self.sensing_range = config.SENSING_RANGE_DRONE
-        self.communication_range = config.COMMUNICATION_RANGE_DRONE
-        self.buffer_max_size = config.DRONE_MAX_BUFFER_SIZE
-        self.residual_energy = config.DRONE_MAX_ENERGY
+        self.speed = self.config.drone_speed
+        self.sensing_range = self.config.drone_sen_range
+        self.communication_range = self.config.drone_com_range
+        self.buffer_max_size = self.config.drone_max_buffer_size
+        self.residual_energy = self.config.drone_max_energy
         self.come_back_to_mission = False
         self.last_move_routing = False
 
@@ -32,7 +33,8 @@ class Drone(Entity):
         self.move_routing = False  # if true, it moves to the depot
 
         # setup drone routing algorithm
-        self.routing_algorithm = config.ROUTING_ALGORITHM.value(self, network_dispatcher)
+        self.routing_algorithm = self.config.routing_algorithm(self, network_dispatcher)
+        # self.routing_algorithm = config.ROUTING_ALGORITHM.value(self, network_dispatcher)
 
         # last mission coord to restore the mission after movement
         self.last_mission_coords = None
@@ -205,7 +207,7 @@ class Drone(Entity):
 
                 self.__buffer.remove(packet)
 
-                if config.DEBUG:
+                if self.config.debug:
 
                     print(f"Drone {str(self.identifier)} just removed packet {str(packet.identifier)}")
 

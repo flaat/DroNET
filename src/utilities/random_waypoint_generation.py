@@ -3,7 +3,7 @@ import random
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-from src.utilities import config
+from src.simulation.configurator import Configurator
 
 
 ## -----------------------------------------------------------------------------
@@ -44,7 +44,7 @@ def next_target(depot_pos, cur_position, residual_autonomy, edge_area, range_dec
 def get_tour(autonomy, edge_area, depot_pos, random_generator, range_decision=None, random_starting_point=True):
     """ random_starting_point : whether start the mission from a random point (True) or from the depot (False)"""
     if range_decision is None:
-        range_decision = config.RANDOM_STEPS
+        range_decision = Configurator().configuration.random_steps
 
     tour = []
     if random_starting_point:

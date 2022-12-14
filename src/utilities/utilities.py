@@ -1,7 +1,5 @@
 """ To clean. """
 
-from src.utilities import config
-
 import pathlib
 import time
 import json
@@ -113,6 +111,7 @@ class PathManager:
             json file to read for take the paths of drones
             We assume json_file.format(seed)
         """
+        self.config = Configurator().configuration
         self.path_from_json = path_from_json
         self.json_file = json_file.format(seed)
         if path_from_json:
@@ -131,18 +130,18 @@ class PathManager:
             less or more than the simulation.
             In the first case the path should be repeated.
         """
-        if config.DEMO_PATH:  # some demo paths
+        if self.config.demo_path:  # some demo paths
             return self.__demo_path(drone_id)
-        if config.CIRCLE_PATH:
+        if self.config.circle_path:
             return self.__cirlce_path(drone_id, simulator)
         elif self.path_from_json:  # paths from loaded json
             return self.path_dict[drone_id]
         else:  # generate dynamic paths
-            return random_waypoint_generation.get_tour(simulator.drone_max_energy, simulator.env_width,
-                                                       simulator.depot_coordinates,
+            return random_waypoint_generation.get_tour(self.config.drone_max_energy, self.config.env_width,
+                                                       self.config.depot_coordinates,
                                                        random_generator=self.rnd_paths,
-                                                       range_decision=config.RANDOM_STEPS,
-                                                       random_starting_point=config.RANDOM_START_POINT)
+                                                       range_decision=self.config.random_steps,
+                                                       random_starting_point=self.config.random_start_point)
 
     def __cirlce_path(self, drone_id, simulator, center=None, radius=None):
         if center is None:

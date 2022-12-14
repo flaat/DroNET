@@ -1,8 +1,6 @@
 from src.entities.events.event import Event
 from src.entities.packets.packets import Packet, HelloPacket, DataPacket, ACKPacket
-from src.utilities import utilities as util
-from src.utilities import config
-from scipy.stats import norm
+from src.simulation.configurator import Configurator
 import abc
 
 
@@ -16,6 +14,7 @@ class BaseRouting(metaclass=abc.ABCMeta):
         @param drone: The drone that needs to perform routing
         """
 
+        self.config = Configurator().configuration
         self.communication_error_type = None
         self.drone = drone
         self.current_n_transmission = 0
@@ -83,7 +82,7 @@ class BaseRouting(metaclass=abc.ABCMeta):
         """
 
         # still not time to communicate
-        if self.drone.clock.current_time % config.HELLO_DELAY != 0:
+        if self.drone.clock.current_time % self.config.hello_delay != 0:
             return 0
 
         null_event = Event(coordinates=(-1, -1),
@@ -147,7 +146,7 @@ class BaseRouting(metaclass=abc.ABCMeta):
                 hello_packet = self.hello_messages[hello_packet_id]
 
                 # check if packet is too old, if so discard the packet
-                if hello_packet.time_step_creation < self.drone.clock.current_time - config.OLD_HELLO_PACKET:
+                if hello_packet.time_step_creation < self.drone.clock.current_time - self.config.old_hello_packet:
                     continue
 
                 opt_neighbors.append((hello_packet, hello_packet.source_drone))
@@ -206,7 +205,7 @@ class BaseRouting(metaclass=abc.ABCMeta):
         self.network_dispatcher.send_packet_to_medium(packet_to_send=packet_to_send,
                                                       source_drone=source_drone,
                                                       destination_drone=destination_drone,
-                                                      to_send_ts=source_drone.clock.current_time + config.LIL_DELTA)
+                                                      to_send_ts=source_drone.clock.current_time + self.config.lil_delta)
 
     def transfer_to_depot(self, depot):
         """

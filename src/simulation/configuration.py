@@ -1,9 +1,23 @@
 from dataclasses import dataclass
 from typing import Tuple
 
-
 @dataclass
 class Configuration:
+    # Path Drones
+    circle_path: bool
+    demo_path: bool
+    path_from_JSON: bool
+    JSON_path_prefix: str
+    random_steps: list
+    random_start_point: bool
+
+    # Drawing
+    plot_simulation: bool
+    wait_simulation_step: float
+    skip_simulation_step: float
+    draw_size: int
+    show_dir_vec: bool
+
     # Simulation
     simulation_name: str
     time_step_duration: float
@@ -14,6 +28,12 @@ class Configuration:
     env_height: int
     show_plot: bool
     prob_size_cell_r: float
+    debug: bool
+    experiments_dir: str
+    save_plot: bool
+    save_plot_dir: bool
+    cell_prob_size_r: float
+    enable_proabilities: bool
 
     # Drones
     drone_com_range: int
@@ -34,6 +54,15 @@ class Configuration:
     event_generation_delay: int
 
     # Routing
-    packets_max_ttl: int
-    routing_algorithm: str
+    routing_algorithm: object
     communication_error_type: str
+    communication_success_probabilities: float
+    gaussian_scale: float
+    packets_max_ttl: int
+    retransmission_delay: int
+    hello_delay: int
+    reception_granted: float
+    lil_delta: float
+    old_hello_packet: int
+    root_evaluation_delta: str
+    nn_model_path: str
