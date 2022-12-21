@@ -11,7 +11,7 @@
   },
 
   "drawing": {
-    "plotSimulation": true,
+    "plotSimulation": false,
     "waitSimulationStep": 0,
     "skipSimulationStep": 5,
     "drawSize": 700,
@@ -26,15 +26,13 @@
       "numberOfDrones": 5,
       "environmentWidth": 1500,
       "environmentHeight": 1500,
-      "showPlot": false,
-      "probSizeCell": 1.875,
+      "showPlot": true,
 
       "debug": false,
       "experimentsDir": "data/evaluation_tests/",
       "savePlot": false,
       "savePlotDir": "data/plots/",
 
-      "cellProbSizeR": 1.875,
       "enableProbabilities": false
   },
 

@@ -1,3 +1,7 @@
+import json
+from dataclasses import asdict
+from src.utilities.EventGenerator import EventGenerator
+from src.utilities.PathManager import PathManager
 from src.drawing import pp_draw
 from src.entities.depot.depots import Depot
 from src.entities.environment.environment import Environment
@@ -23,45 +27,28 @@ you can initialize the Simulator with non default values.
 class Simulator:
 
     def __init__(self):
+
+        # Get config from configurator object
         self.config = Configurator().configuration
 
-        # --------------- cell for drones -------------
-        self.prob_size_cell_r = self.config.prob_size_cell_r
-        self.prob_size_cell = int(self.config.drone_com_range * self.prob_size_cell_r)
-        self.cell_prob_map = defaultdict(lambda: [0, 0, 0])
-
         self.sim_save_file = self.config.save_plot_dir + self.__sim_name()
-        self.path_to_depot = None
 
         self.clock = Clock()
 
-        # Setup vari
-        # for stats
+        # Setting up metrics and logger dataclasses
         self.metrics = Metrics()
         self.logger = Logger()
-
-        # setup network
-        self.__setup_net_dispatcher()
 
         # Set up the simulation
         self.__set_simulation()
 
-        self.simulation_name = "test-" + utilities.date() + "_" + str(self.config.simulation_name) + "_" + str(self.config.seed)
+        # TODO: make simulation name configurable
+
+        date_and_time = str(time.strftime("%d%m%Y-%H%M%S"))
+        self.simulation_name = "test-" + date_and_time + "_" + str(self.config.simulation_name) + "_" + str(self.config.seed)
         self.simulation_test_dir = self.simulation_name + "/"
 
-        self.start = time.time()
-        # self.event_generator = utilities.EventGenerator(self)
-        self.event_generator = utilities.EventGenerator()
-
-    # TODO: why is this in a separate function? it just assigns a parameter. Remove it?
-
-    def __setup_net_dispatcher(self):
-        """
-
-        @return:
-        """
-
-        self.network_dispatcher = MediumDispatcher(self)
+        self.event_generator = EventGenerator()
 
     def __set_random_generators(self):
         """
@@ -81,9 +68,13 @@ class Simulator:
         @return:
         """
 
+        self.network_dispatcher = MediumDispatcher(self)
+
         self.__set_random_generators()
 
-        self.path_manager = utilities.PathManager(self.config.path_from_JSON, self.config.JSON_path_prefix, self.config.seed)
+        self.path_manager = PathManager(path_from_json=self.config.path_from_JSON,
+                                                  json_file=self.config.JSON_path_prefix,
+                                                  seed=self.config.seed)
 
         self.environment = Environment(width=self.config.env_width,
                                        height=self.config.env_height)
@@ -144,7 +135,7 @@ class Simulator:
 
         # drones plot
         for drone in self.drones:
-            self.draw_manager.draw_drone(drone=drone, cur_step=self.cur_step)
+            self.draw_manager.draw_drone(drone=drone)
 
         # depot plot
         self.draw_manager.draw_depot(self.depot)
@@ -154,36 +145,13 @@ class Simulator:
             self.draw_manager.draw_event(event)
 
         # draw simulation info
-        self.draw_manager.draw_simulation_info(cur_step=self.cur_step, max_steps=self.config.len_simulation)
+        self.draw_manager.draw_simulation_info(cur_step=self.cur_step, max_steps=self.config.simulation_length)
 
         # rendering phase
         file_name = self.sim_save_file + str(self.cur_step) + ".png"
         # TODO: python fails if SAVE_PLOT flag is set to True.
-        self.draw_manager.update(show=self.config.show_plot, save=self.config.save_plots, filename=file_name)
+        self.draw_manager.update(show=self.config.show_plot, save=self.config.save_plot, filename=file_name)
 
-    def increase_meetings_probs(self, drones, cur_step):
-        """ Increases the probabilities of meeting someone. """
-        cells = set()
-        for drone in drones:
-            coords = drone.coordinates
-            cell_index = utilities.TraversedCells.coord_to_cell(size_cell=self.prob_size_cell,
-                                                                width_area=self.config.env_width,
-                                                                x_pos=coords[0],  # e.g. 1500
-                                                                y_pos=coords[1])  # e.g. 500
-            cells.add(int(cell_index[0]))
-
-        for cell, cell_center in utilities.TraversedCells.all_centers(self.config.env_width, self.config.env_height,
-                                                                      self.prob_size_cell):
-
-            index_cell = int(cell[0])
-            old_vals = self.cell_prob_map[index_cell]
-
-            if index_cell in cells:
-                old_vals[0] += 1
-
-            old_vals[1] = cur_step + 1
-            old_vals[2] = old_vals[0] / max(1, old_vals[1])
-            self.cell_prob_map[index_cell] = old_vals
 
     def run(self):
         """
@@ -213,10 +181,6 @@ class Simulator:
                 drone.routing(self.drones)
                 drone.move(self.config.time_step_duration)
 
-            # in case we need probability map
-            if self.config.enable_proabilities:
-                self.increase_meetings_probs(self.drones, cur_step)
-
             if self.config.show_plot or self.config.save_plot:
                 self.__plot()
 
@@ -230,7 +194,9 @@ class Simulator:
         @return:
         """
         print("Closing simulation")
+        logs_path = "data/logs"
 
+        self.logger.write(path=logs_path, filename=self.simulation_name)
         self.compute_final_metrics()
         self.print_metrics(metrics=True, logger=False)
         self.save_metrics(self.config.root_evaluation_delta + self.simulation_name)

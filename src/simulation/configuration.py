@@ -27,12 +27,10 @@ class Configuration:
     env_width: int
     env_height: int
     show_plot: bool
-    prob_size_cell_r: float
     debug: bool
     experiments_dir: str
     save_plot: bool
     save_plot_dir: bool
-    cell_prob_size_r: float
     enable_proabilities: bool
 
     # Drones

@@ -50,6 +50,8 @@ class Configurator(metaclass=SingletonMeta):
         from src.routing_algorithms.random_routing import RandomRouting
         from src.routing_algorithms.q_learning_routing import QLearningRouting
 
+        # TODO: sistemare selezione degli algoritmi di routing: dizionario con nome->algoritmo routing
+
         routing_algorithm = RandomRouting if routing_parameters['routingAlgorithm'] == "RND" else QLearningRouting
 
         self.configuration = Configuration(
@@ -77,12 +79,10 @@ class Configurator(metaclass=SingletonMeta):
             simulation_parameters['environmentWidth'],
             simulation_parameters['environmentHeight'],
             simulation_parameters['showPlot'],
-            simulation_parameters['probSizeCell'],
             simulation_parameters['debug'],
             simulation_parameters['experimentsDir'],
             simulation_parameters['savePlot'],
             simulation_parameters['savePlotDir'],
-            simulation_parameters['cellProbSizeR'],
             simulation_parameters['enableProbabilities'],
 
             # Drones

@@ -20,7 +20,7 @@ class Packet(Entity):
 
         self.__TTL = -1  # TTL is the number of hops that the packet crossed
         self.__max_TTL = 1000
-        self.time_step_creation = 100
+        self.time_step_creation = clock.current_time
         self.event_ref = event_ref
         self.number_retransmission_attempt = 0
         self.last_2_hops = []
@@ -38,7 +38,7 @@ class Packet(Entity):
         @return: True if the packet is expired False otherwise
         """
 
-        return self.clock.current_time > self.event_ref.deadline
+        return self.clock.current_time - self.time_step_creation > self.__max_TTL
 
     def to_json(self):
         """ return the json repr of the obj """
