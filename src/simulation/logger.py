@@ -1,10 +1,11 @@
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field, fields, asdict
 from typing import Union
 
 from src.entities.events.event import Event
 from src.entities.packets.packets import Packet, HelloPacket, ACKPacket
 from src.entities.uavs.drone import Drone
 
+import json
 
 @dataclass
 class Logger:

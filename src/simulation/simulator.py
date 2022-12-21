@@ -10,7 +10,6 @@ from src.simulation.logger import Logger
 from src.simulation.metrics import Metrics
 from src.utilities import utilities
 from src.routing_algorithms.net_routing import MediumDispatcher
-from collections import defaultdict
 from tqdm import tqdm
 from src.simulation.configurator import Configurator
 
@@ -39,7 +38,7 @@ class Simulator:
         self.metrics = Metrics()
         self.logger = Logger()
 
-        # Set up the simulation
+        # Setting up the simulation
         self.__set_simulation()
 
         # TODO: make simulation name configurable
@@ -107,9 +106,7 @@ class Simulator:
             self.draw_manager = pp_draw.PathPlanningDrawer(env=self.environment,
                                                            padding=25,
                                                            borders=True)
-
-    # TODO: specify the return type two times like in this example?
-
+    # TODO: useful?
     def __sim_name(self) -> str:
         """
         Returns the identification name for

@@ -62,7 +62,7 @@
       "channelErrorType": "GAUSSIAN",
       "communicationSuccessProbability": 1,
       "gaussianScale": 0.9,
-      "packetMaxTimeToLive": 200,
+      "packetMaxTimeToLive": 2000,
       "retransmissionDelay": 10,
       "helloDelay":5,
       "receptionGranted": 0.95,
