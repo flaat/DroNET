@@ -18,6 +18,4 @@ class RandomRouting(BaseRouting):
 
         choice = random.choice([v[1] for v in opt_neighbors])
 
-        print(f"Drone {self.drone.identifier} has sent a packet to {choice}")
-
         return choice

@@ -1,6 +1,8 @@
 from src.simulation.configuration import Configuration
-
+from enum import Enum
 import json
+
+
 class SingletonMeta(type):
     """
     The metaclass that allows us to spawn singleton classes.
@@ -19,7 +21,6 @@ class SingletonMeta(type):
             cls._instances[cls] = instance
         return cls._instances[cls]
 
-
 class Configurator(metaclass=SingletonMeta):
     configuration = None
 
@@ -36,6 +37,14 @@ class Configurator(metaclass=SingletonMeta):
         @return:
         """
 
+        from src.routing_algorithms.random_routing import RandomRouting
+        from src.routing_algorithms.q_learning_routing import QLearningRouting
+
+        routing_algorithm = {
+            "RND": RandomRouting,
+            "QL": QLearningRouting
+        }
+
         config_file = open(path)
         json_parameters = json.load(config_file)
 
@@ -46,13 +55,6 @@ class Configurator(metaclass=SingletonMeta):
         depot_parameters = json_parameters['depot']
         event_parameters = json_parameters['event']
         routing_parameters = json_parameters['routing']
-
-        from src.routing_algorithms.random_routing import RandomRouting
-        from src.routing_algorithms.q_learning_routing import QLearningRouting
-
-        # TODO: sistemare selezione degli algoritmi di routing: dizionario con nome->algoritmo routing
-
-        routing_algorithm = RandomRouting if routing_parameters['routingAlgorithm'] == "RND" else QLearningRouting
 
         self.configuration = Configuration(
             # Path Drones
@@ -104,7 +106,7 @@ class Configurator(metaclass=SingletonMeta):
             event_parameters['eventGenerationDelay'],
 
             # Routing
-            routing_algorithm,
+            routing_algorithm[routing_parameters['routingAlgorithm']],
             routing_parameters['channelErrorType'],
             routing_parameters['communicationSuccessProbability'],
             routing_parameters['gaussianScale'],

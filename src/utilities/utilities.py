@@ -1,16 +1,12 @@
 """ To clean. """
 
 import pathlib
-import json
 import matplotlib.pyplot as plt
 import pandas as pd
 import pickle
-from ast import literal_eval as make_tuple
-from src.utilities import random_waypoint_generation
 from src.simulation.configurator import Configurator
 from src.utilities.formulas import *
 
-# TODO: [CLEAN] refactoring utilities.py
 def pickle_data(data, filename):
     """ save the metrics on file """
     with open(filename, 'wb') as out:
@@ -83,11 +79,6 @@ class PathToDepot():
     def __init__(self, x_position):
         self.x_position = x_position
         self.config = Configurator().configuration
-
-    # def __init__(self, x_position, simulator):
-    #     """ for now just a middle channel in the area used by all the drones """
-    #     self.x_position = x_position
-    #     self.simulator = simulator
 
     def next_target(self, drone_pos):
         """ based on the drone position return the next target:

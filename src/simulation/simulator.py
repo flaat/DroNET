@@ -1,7 +1,5 @@
-import json
-from dataclasses import asdict
-from src.utilities.EventGenerator import EventGenerator
-from src.utilities.PathManager import PathManager
+from src.simulation.event_generator import EventGenerator
+from src.simulation.path_manager import PathManager
 from src.drawing import pp_draw
 from src.entities.depot.depots import Depot
 from src.entities.environment.environment import Environment

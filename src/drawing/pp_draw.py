@@ -1,11 +1,9 @@
 from src.drawing import stddraw
 from src.entities.environment.environment import Environment
-from src.utilities import utilities
 from collections import defaultdict
 from src.simulation.configurator import Configurator
 
 
-# TODO: Sistemare pp_draw.py commentando e eliminando cose che non servono
 # printer the environment
 class PathPlanningDrawer:
 
@@ -24,10 +22,17 @@ class PathPlanningDrawer:
         self.keep_indictor = defaultdict(list)  # list of couples (time stamp, drone)
 
     def save(self, filename):
-        """ save the current plot """
+        """
+        saves the current plot in the specified file
+        @param filename: file in which to dump data
+        """
         stddraw.save(filename)
 
     def __borders_plot(self):
+        """
+        draws the borders in the simulation window representing the borders of the environment
+        @return:
+        """
         stddraw.setPenColor(c=stddraw.RED)
         stddraw.setPenRadius(0.0025)
         stddraw.line(0, 0, 0, self.width)
@@ -36,6 +41,9 @@ class PathPlanningDrawer:
         stddraw.line(self.height, 0, self.height, self.width)
         self.__reset_pen()
 
+    # TODO: i feel like this method is useless: if you need a specific color and a specific radius this will be used,
+    #  but sometimes you need another color with the same thickness and the setPenColor and setPenRadius methods will
+    #  be called manually. What's the point?
     @staticmethod
     def __reset_pen():
         """
@@ -65,6 +73,8 @@ class PathPlanningDrawer:
 
         self.__draw_drone_info(drone)
         self.__draw_communication_range(drone)
+
+        # TODO: why draw the sensing range for all drones if it is always zero?
         self.__draw_sensing_range(drone)
         self.__reset_pen()
 
@@ -93,6 +103,11 @@ class PathPlanningDrawer:
         stddraw.clear()
 
     def draw_event(self, event):
+        """
+        draws the event @event by briefly changing the color of a dot in the middle of the drone representation.
+        @param event: An event object.
+        @return:
+        """
         coords = event.coordinates
         stddraw.setPenRadius(0.0055)
         stddraw.setPenColor(c=stddraw.RED)
@@ -134,10 +149,21 @@ class PathPlanningDrawer:
 
     @staticmethod
     def __draw_sensing_range(body):
+        """
+        Draws sensing range of an object, either a drone or a depot. It gets drawn as a Red circle around the entity
+        @param body:
+        @return:
+        """
+
+        # Set pen radius and color
         stddraw.setPenRadius(0.0015)
         stddraw.setPenColor(c=stddraw.RED)
+
+        # Draws circle
         stddraw.circle(body.coordinates[0], body.coordinates[1],
                        body.sensing_range)
+
+        # Resets color
         stddraw.setPenColor(c=stddraw.BLACK)
 
     @staticmethod
@@ -157,9 +183,18 @@ class PathPlanningDrawer:
                        object.coordinates[1],
                        object.communication_range)
 
+        # Resets color
         stddraw.setPenColor(c=stddraw.BLACK)
 
+    # TODO: just a small thing on consistency: in all other methods we pass an object and then extract the data,
+    #  now we directly pass the data. Which should we adopt?
     def __draw_next_target(self, drone_coo, target):
+        """
+        Draws a point representing the next target for the drone and a straight line that highlights the path to such point.
+        @param drone_coo: coordinates of the drone
+        @param target: the next target generated.
+        @return:
+        """
         stddraw.setPenRadius(0.0055)
         stddraw.setPenColor(c=stddraw.BLUE)
         stddraw.point(target[0], target[1])

@@ -7,9 +7,9 @@ from src.entities.uavs.drone import Drone
 
 import json
 
+
 @dataclass
 class Logger:
-
     control_packets: list = field(default_factory=list)
 
     # all the events generated during the simulation
@@ -56,7 +56,8 @@ class Logger:
         @return:
         """
 
-        tuple_to_store = (timestep, packet.identifier, packet.event_ref, packet.source_drone, packet.destination_drone, packet)
+        tuple_to_store = (
+        timestep, packet.identifier, packet.event_ref, packet.source_drone, packet.destination_drone, packet)
 
         self.events.append(tuple_to_store)
 
@@ -90,14 +91,12 @@ class Logger:
         return self.__repr__()
 
     def __repr__(self):
-
         cls = self.__class__
         cls_name = cls.__name__
         indent = ' ' * 4
         res = [f'Simulation {cls_name}(']
 
         for f in fields(cls):
-
             value = getattr(self, f.name)
             res.append(f'{indent}{f.name} = {value!r},')
 
@@ -105,10 +104,5 @@ class Logger:
         return '\n'.join(res)
 
     def write(self, path: str, filename: str):
-
-
         with open(f"{path}/{filename}", "w") as file:
-
             file.write(str(self))
-
-
