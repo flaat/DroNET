@@ -1,6 +1,7 @@
 import numpy as np
 from src.simulation.configurator import Configurator
 
+
 class EventGenerator:
 
     def __init__(self):

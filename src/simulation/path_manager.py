@@ -6,34 +6,9 @@ from src.utilities import formulas
 from ast import literal_eval as make_tuple
 
 
-def json_to_paths(json_file_path):
-    """ load the tour for drones
-        and return a dictionary {drone_id : list of waypoint}
-
-        e.g.,
-        accept json that contains:
-        {"drones": [{"index": "0", "tour": ["(1500, 0)", "(1637, 172)", ...
-                    (1500, 0)"]}, {"index": "1", "tour": ["(1500, 0)",
-
-        TOURS = {
-            0 : [(0,0), (2000,2000), (1500, 1500), (200, 2000)],
-            1 : [(0,0), (2000, 200), (200, 2000), (1500, 1500)]
-        }
-    """
-    out_data = {}
-    with open(json_file_path, 'r') as in_file:
-        data = json.load(in_file)
-        for drone_data in data["drones"]:
-            drone_index = int(drone_data["index"])
-            drone_path = []
-            for waypoint in drone_data["tour"]:
-                drone_path.append(make_tuple(waypoint))
-            out_data[drone_index] = drone_path
-    return out_data
-
-
 class PathManager:
 
+    # TODO: se path_from_json true ma stringa non valida errore, perche' non controllare direttamente che la stringa non sia vuota?
     def __init__(self, path_from_json: bool, json_file: str, seed: int):
         """
             path_from_json : wheter generate or load the paths for the drones
@@ -44,7 +19,7 @@ class PathManager:
         self.path_from_json = path_from_json
         self.json_file = json_file.format(seed)
         if path_from_json:
-            self.path_dict = json_to_paths(self.json_file)
+            self.path_dict = self.json_to_paths(self.json_file)
             self.rnd_paths = None
         else:
             self.path_dict = None
@@ -59,6 +34,8 @@ class PathManager:
             less or more than the simulation.
             In the first case the path should be repeated.
         """
+
+        # TODO: invece che tutti questi booleani diversi in config, perche' non fare un enum?
         if self.config.demo_path:  # some demo paths
             return self.__demo_path(drone_id)
         if self.config.circle_path:
@@ -82,6 +59,7 @@ class PathManager:
         step_start = int(len(traj) / n_drones)
         return traj[(drone_id * step_start):] + traj[:(drone_id * step_start)]
 
+    # TODO: perche' avere path hard coded quando posso caricarli da json.
     def __demo_path(self, drone_id):
         """ Add handcrafted torus here.  """
         tmp_path = {0: [(750, 750), (760, 750), (750, 750), (760, 750), (770, 750)],
@@ -90,3 +68,28 @@ class PathManager:
                     3: [(1400, 160), (460, 1050), (1060, 1050), (1060, 450), (460, 450), (0, 1500)],
                     4: [(1500, 200), (460, 1050), (1060, 1050), (1060, 450), (460, 450), (0, 1500)]}
         return tmp_path[drone_id]
+
+    def json_to_paths(self, json_file_path):
+        """ load the tour for drones
+            and return a dictionary {drone_id : list of waypoint}
+
+            e.g.,
+            accept json that contains:
+            {"drones": [{"index": "0", "tour": ["(1500, 0)", "(1637, 172)", ...
+                        (1500, 0)"]}, {"index": "1", "tour": ["(1500, 0)",
+
+            TOURS = {
+                0 : [(0,0), (2000,2000), (1500, 1500), (200, 2000)],
+                1 : [(0,0), (2000, 200), (200, 2000), (1500, 1500)]
+            }
+        """
+        out_data = {}
+        with open(json_file_path, 'r') as in_file:
+            data = json.load(in_file)
+            for drone_data in data["drones"]:
+                drone_index = int(drone_data["index"])
+                drone_path = []
+                for waypoint in drone_data["tour"]:
+                    drone_path.append(make_tuple(waypoint))
+                out_data[drone_index] = drone_path
+        return out_data
