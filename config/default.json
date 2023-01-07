@@ -26,7 +26,7 @@
       "numberOfDrones": 5,
       "environmentWidth": 1500,
       "environmentHeight": 1500,
-      "showPlot": true,
+      "showPlot": false,
 
       "debug": false,
       "experimentsDir": "data/evaluation_tests/",

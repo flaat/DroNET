@@ -103,6 +103,7 @@ class Logger:
         res.append(')')
         return '\n'.join(res)
 
+    # TODO: plot del log condizionale?
     def write(self, path: str, filename: str):
         with open(f"{path}/{filename}", "w") as file:
             file.write(str(self))
