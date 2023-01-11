@@ -11,7 +11,7 @@ class PathManager:
     # TODO: se path_from_json true ma stringa non valida errore, perche' non controllare direttamente che la stringa non sia vuota?
     def __init__(self, path_from_json: bool, json_file: str, seed: int):
         """
-            path_from_json : wheter generate or load the paths for the drones
+            path_from_json : whether generate or load the paths for the drones
             json file to read for take the paths of drones
             We assume json_file.format(seed)
         """
