@@ -2,7 +2,6 @@ from src.simulation.event_generator import EventGenerator
 from src.simulation.path_manager import PathManager
 from src.drawing import pp_draw
 from src.entities.depot.depots import Depot
-from src.entities.environment.environment import Environment
 from src.entities.uavs.drone import Drone
 from src.simulation.logger import Logger
 from src.simulation.metrics import Metrics
@@ -73,9 +72,6 @@ class Simulator:
                                                   json_file=self.config.JSON_path_prefix,
                                                   seed=self.config.seed)
 
-        self.environment = Environment(width=self.config.env_width,
-                                       height=self.config.env_height)
-
         self.depot = Depot(coordinates=self.config.depot_coordinates,
                            communication_range=self.config.depot_com_range,
                            clock=self.clock,
@@ -92,16 +88,14 @@ class Simulator:
                                      clock=self.clock,
                                      logger=self.logger))
 
-        self.environment.drones = self.drones
-        self.environment.depot = self.depot
-
         # Set the maximum distance between the drones and the depot
         self.max_dist_drone_depot = utilities.euclidean_distance(self.depot.coordinates,
                                                                  (self.config.env_width,
                                                                   self.config.env_height))
 
         if self.config.show_plot or self.config.save_plot:
-            self.draw_manager = pp_draw.PathPlanningDrawer(env=self.environment,
+            self.draw_manager = pp_draw.PathPlanningDrawer(width=self.config.env_width,
+                                                           height=self.config.env_height,
                                                            padding=25,
                                                            borders=True)
     # TODO: useful?
@@ -136,8 +130,8 @@ class Simulator:
         self.draw_manager.draw_depot(self.depot)
 
         # events
-        for event in self.environment.active_events:
-            self.draw_manager.draw_event(event)
+        # for event in self.environment.active_events:
+        #     self.draw_manager.draw_event(event)
 
         # draw simulation info
         self.draw_manager.draw_simulation_info(cur_step=self.cur_step, max_steps=self.config.simulation_length)

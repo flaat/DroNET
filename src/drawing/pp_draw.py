@@ -1,5 +1,4 @@
 from src.drawing import stddraw
-from src.entities.environment.environment import Environment
 from collections import defaultdict
 from src.simulation.configurator import Configurator
 
@@ -7,10 +6,10 @@ from src.simulation.configurator import Configurator
 # printer the environment
 class PathPlanningDrawer:
 
-    def __init__(self, env: Environment, borders=False, padding=25):
+    def __init__(self, width, height, borders=False, padding=25):
         """ init the path plannind drawer """
-        self.width = env.width
-        self.height = env.height
+        self.width = width
+        self.height = height
         self.borders = borders
         self.config = Configurator().configuration
         stddraw.setXscale(0 - padding, self.width + padding)

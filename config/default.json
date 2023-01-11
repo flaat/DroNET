@@ -58,7 +58,7 @@
   },
 
   "routing": {
-      "routingAlgorithm": "RND",
+      "routingAlgorithm": "QL",
       "channelErrorType": "GAUSSIAN",
       "communicationSuccessProbability": 1,
       "gaussianScale": 0.9,
