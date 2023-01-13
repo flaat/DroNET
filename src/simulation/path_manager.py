@@ -9,21 +9,23 @@ from ast import literal_eval as make_tuple
 class PathManager:
 
     # TODO: se path_from_json true ma stringa non valida errore, perche' non controllare direttamente che la stringa non sia vuota?
-    def __init__(self, path_from_json: bool, json_file: str, seed: int):
+    # def __init__(self, path_from_json: bool, json_file: str, seed: int):
+    def __init__(self):
         """
             path_from_json : whether generate or load the paths for the drones
-            json file to read for take the paths of drones
-            We assume json_file.format(seed)
+            json_file : path to json file storing drone paths.
         """
+
         self.config = Configurator().configuration
-        self.path_from_json = path_from_json
-        self.json_file = json_file.format(seed)
-        if path_from_json:
+        self.path_from_json = self.config.path_from_JSON
+        self.json_file = self.config.JSON_path_prefix.format(self.config.seed) # We assume json_file.format(seed) (?)
+
+        if self.path_from_json:
             self.path_dict = self.json_to_paths(self.json_file)
             self.rnd_paths = None
         else:
             self.path_dict = None
-            self.rnd_paths = np.random.RandomState(seed)
+            self.rnd_paths = np.random.RandomState(self.config.seed)
 
     def path(self, drone_id, simulator):
         """ takes the drone id and

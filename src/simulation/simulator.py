@@ -13,6 +13,7 @@ from src.simulation.configurator import Configurator
 
 import numpy as np
 import time
+import os
 
 """
 This file contains the Simulation class. It allows to specify all the relevant parameters of the simulation,
@@ -69,9 +70,11 @@ class Simulator:
 
         self.__set_random_generators()
 
-        self.path_manager = PathManager(path_from_json=self.config.path_from_JSON,
+        self.path_manager = PathManager()
+
+        """self.path_manager = PathManager(path_from_json=self.config.path_from_JSON,
                                                   json_file=self.config.JSON_path_prefix,
-                                                  seed=self.config.seed)
+                                                  seed=self.config.seed)"""
 
         self.environment = Environment(width=self.config.env_width,
                                        height=self.config.env_height)
@@ -100,7 +103,8 @@ class Simulator:
                                                                  (self.config.env_width,
                                                                   self.config.env_height))
 
-        if self.config.show_plot or self.config.save_plot:
+        #if self.config.show_plot or self.config.save_plot:
+        if self.config.plot_simulation:
             self.draw_manager = pp_draw.PathPlanningDrawer(env=self.environment,
                                                            padding=25,
                                                            borders=True)
@@ -145,7 +149,8 @@ class Simulator:
         # rendering phase
         file_name = self.sim_save_file + str(self.cur_step) + ".png"
         # TODO: python fails if SAVE_PLOT flag is set to True.
-        self.draw_manager.update(show=self.config.show_plot, save=self.config.save_plot, filename=file_name)
+        #self.draw_manager.update(show=self.config.show_plot, save=self.config.save_plot, filename=file_name)
+        self.draw_manager.update(show=self.config.plot_simulation, save=self.config.save_plot, filename=file_name)
 
 
     def run(self):
@@ -176,7 +181,8 @@ class Simulator:
                 drone.routing(self.drones)
                 drone.move(self.config.time_step_duration)
 
-            if self.config.show_plot or self.config.save_plot:
+            #if self.config.show_plot or self.config.save_plot:
+            if self.config.plot_simulation:
                 self.__plot()
 
         if self.config.debug:
@@ -194,6 +200,7 @@ class Simulator:
         self.logger.write(path=logs_path, filename=self.simulation_name)
         self.compute_final_metrics()
         self.print_metrics(metrics=True, logger=False)
+        os.makedirs(f"{self.config.root_evaluation_delta}", exist_ok=True)
         self.save_metrics(self.config.root_evaluation_delta + self.simulation_name)
 
     def compute_final_metrics(self):

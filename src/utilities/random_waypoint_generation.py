@@ -21,7 +21,7 @@ def euclidean_distance(point1, point2):
                      + math.pow(point2[1] - point1[1], 2))
 
 
-# TODO: move these in path_manager
+# TODO: move these in path_manager [Giulio]
 def next_target(depot_pos, cur_position, residual_autonomy, edge_area, range_decision, random_generator):
     """ return the next position (x,y) along the next autonomy after reached the point"""
     if residual_autonomy < min(range_decision) * 1.44 + euclidean_distance(depot_pos, cur_position):

@@ -5,6 +5,7 @@ from src.entities.events.event import Event
 from src.entities.packets.packets import Packet, HelloPacket, ACKPacket
 from src.entities.uavs.drone import Drone
 
+import os
 import json
 
 
@@ -104,5 +105,6 @@ class Logger:
         return '\n'.join(res)
 
     def write(self, path: str, filename: str):
+        os.makedirs(f"{path}", exist_ok=True)
         with open(f"{path}/{filename}", "w") as file:
             file.write(str(self))
