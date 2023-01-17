@@ -1,5 +1,5 @@
 from src.simulation.event_generator import EventGenerator
-from src.simulation.path_manager import PathManager
+from src.mission.mission_manager import MissionManager
 from src.drawing import pp_draw
 from src.entities.depot.depots import Depot
 from src.entities.environment.environment import Environment
@@ -70,7 +70,8 @@ class Simulator:
 
         self.__set_random_generators()
 
-        self.path_manager = PathManager()
+        self.path_manager = MissionManager()
+        self.path_manager.json_to_mission(self.config.JSON_path_prefix.format(self.config.seed))
 
         """self.path_manager = PathManager(path_from_json=self.config.path_from_JSON,
                                                   json_file=self.config.JSON_path_prefix,
@@ -89,7 +90,7 @@ class Simulator:
         # drone 0 is the first
         for i in range(self.config.n_drones):
             self.drones.append(Drone(identifier=i,
-                                     path=self.path_manager.path(i, self),
+                                     path=self.path_manager.get_drone_path(i),
                                      depot=self.depot,
                                      network_dispatcher=self.network_dispatcher,
                                      clock=self.clock,

@@ -1,8 +1,9 @@
 from src.simulation.simulator import Simulator
-
+from src.tests import *
 
 def main():
     """ the place where to run simulations and experiments. """
+    #test()
     simulate()
 
 
@@ -11,8 +12,8 @@ def simulate():
     sim.run()           # run the simulation
     sim.close()
 def test():
-    sim = Simulator()
-    print(sim.config)
+    # path manager tests
+    path_manager_tests()
 
 if __name__ == "__main__":
     main()

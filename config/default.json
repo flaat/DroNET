@@ -5,7 +5,7 @@
     "circlePath": false,
     "demoPath": false,
     "pathFromJSON": false,
-    "JSONPathPrefix": "data/tours/RANDOM_missions{}.json",
+    "JSONPathPrefix": "data/tours/RANDOM_missions{}NEW.json",
     "randomSteps": [250, 500, 700, 900, 1100, 1400],
     "randomStartPoint": true
   },
@@ -22,7 +22,7 @@
       "simulationName": "DefaultSim",
       "timeStepDuration": 0.150,
       "simulationLength": 15000,
-      "seed": 20,
+      "seed": 0,
       "numberOfDrones": 5,
       "environmentWidth": 1500,
       "environmentHeight": 1500,
