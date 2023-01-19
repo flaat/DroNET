@@ -1,5 +1,5 @@
 from src.entities.packets.packets import DataPacket
-from src.entities.simulated_entities import Entity
+from src.entities.entities import Entity
 
 
 # class EventGenerator(SimulatedEntity):
