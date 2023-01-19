@@ -104,6 +104,7 @@ class Logger:
         res.append(')')
         return '\n'.join(res)
 
+    # TODO: plot del log condizionale?
     def write(self, path: str, filename: str):
         os.makedirs(f"{path}", exist_ok=True)
         with open(f"{path}/{filename}", "w") as file:

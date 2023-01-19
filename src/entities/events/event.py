@@ -1,25 +1,25 @@
 from src.entities.packets.packets import DataPacket
-from src.entities.simulated_entities import Entity, SimulatedEntity
+from src.entities.simulated_entities import Entity
 
 
-class EventGenerator(SimulatedEntity):
-
-    def __init__(self, height, width, random_generator):
-        """ uniform event generator """
-        super().__init__(clock=None)
-        self.height = height
-        self.width = width
-        self.random_generator = random_generator
-
-    def uniform_event_generator(self):
-        """ generates an event in the map """
-        x = self.random_generator.randint(0, self.height)
-        y = self.random_generator.randint(0, self.width)
-        return x, y
-
-    def poisson_event_generator(self):
-        """ generates an event in the map """
-        pass
+# class EventGenerator(SimulatedEntity):
+#
+#     def __init__(self, height, width, random_generator):
+#         """ uniform event generator """
+#         super().__init__(clock=None)
+#         self.height = height
+#         self.width = width
+#         self.random_generator = random_generator
+#
+#     def uniform_event_generator(self):
+#         """ generates an event in the map """
+#         x = self.random_generator.randint(0, self.height)
+#         y = self.random_generator.randint(0, self.width)
+#         return x, y
+#
+#     def poisson_event_generator(self):
+#         """ generates an event in the map """
+#         pass
 
 
 class Event(Entity):
@@ -35,16 +35,18 @@ class Event(Entity):
         @param deadline:
         """
 
-        super().__init__(identifier=id(self), coordinates=coordinates, clock=clock)
+        super().__init__(identifier=id(self), clock=clock)
         self.current_time = current_time
 
         # One can specify the deadline or just consider as deadline now + EVENTS_DURATION
         # The deadline of an event represents the estimate of the drone that the event will be no more
         # interesting to monitor.
+        # TODO: comments say now + EVENTS_DURATION (which is something in the config file) but the value is hardcoded to "100". In config file value is set to "2000"
         self.deadline = current_time + 100
 
         # add metrics: all the events generated during the simulation
         # GENERATED_EVENTS
+        # TODO: ????
         if not coordinates == (-1, -1) and not current_time == -1:
             pass
 

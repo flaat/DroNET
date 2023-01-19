@@ -10,8 +10,9 @@ class Drone(Entity):
 
     def __init__(self, identifier: int, path: list, depot: Depot, clock, logger=None, network_dispatcher=None):
 
-        super().__init__(identifier=identifier, coordinates=path[0], clock=clock, logger=logger)
+        super().__init__(identifier=identifier, clock=clock, logger=logger)
 
+        self.coordinates = path[0]
         self.config = Configurator().configuration
         self.depot = depot
         self.path = path

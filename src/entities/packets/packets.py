@@ -16,7 +16,7 @@ class Packet(Entity):
 
         # id(self) is the id of this instance (unique for every new created packet),
         # the coordinates are those of the event
-        super().__init__(identifier=id(self), coordinates=event_ref.coordinates, clock=clock)
+        super().__init__(identifier=id(self), clock=clock)
 
         self.__TTL = -1  # TTL is the number of hops that the packet crossed
         self.__max_TTL = 1000
@@ -43,8 +43,7 @@ class Packet(Entity):
     def to_json(self):
         """ return the json repr of the obj """
 
-        return {"coord": self.coordinates,
-                "i_gen": self.time_step_creation,
+        return {"i_gen": self.time_step_creation,
                 "i_dead": self.event_ref.deadline,
                 "id": self.identifier,
                 "TTL": self.__TTL,
@@ -76,7 +75,8 @@ class Packet(Entity):
 
         packet_type = str(self.__class__).split(".")[-1].split("'")[0]
 
-        return f"{packet_type} id: {str(self.identifier)} event id: {str(self.event_ref.identifier)} coordinates: {str(self.coordinates)}"
+        # TODO: do we care about coordinates?
+        # return f"{packet_type} id: {str(self.identifier)} event id: {str(self.event_ref.identifier)} coordinates: {str(self.coordinates)}"
 
 
 class DataPacket(Packet):
