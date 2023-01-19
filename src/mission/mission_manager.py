@@ -1,7 +1,7 @@
 import json
 from src.simulation.configurator import Configurator
-
 from ast import literal_eval as make_tuple
+
 
 class MissionManager:
     def __init__(self):
@@ -41,7 +41,6 @@ class MissionManager:
             if drone_id < 0 or drone_id >= self.config.n_drones: assert False
             self.is_path(path)
 
-
     def is_path(self, path):
         """
             Testing purposes only
@@ -51,7 +50,8 @@ class MissionManager:
         for hop_coord in path:
             if type(hop_coord) is not tuple: assert False
             if type(hop_coord[0]) is not int and type(hop_coord[1]) is not int: assert False
-            if hop_coord[0] < 0 or hop_coord[1] < 0 or hop_coord[0] > self.config.env_width or hop_coord[1] > self.config.env_height: assert False
+            if hop_coord[0] < 0 or hop_coord[1] < 0 or hop_coord[0] > self.config.env_width or hop_coord[
+                1] > self.config.env_height: assert False
 
     def json_to_mission(self, json_file_in, whole=False):
         """
@@ -79,7 +79,7 @@ class MissionManager:
         self.is_mission(mission)
         self.mission = mission
 
-    def json_to_mission_old(self,json_file_in, whole=False):
+    def json_to_mission_old(self, json_file_in, whole=False):
         mission = {}
         with open(json_file_in, 'r') as in_file:
             data = json.load(in_file)
@@ -109,8 +109,6 @@ class MissionManager:
     def old_mission_format_to_new_format(self, file_in, file_out):
         self.mission = self.json_to_mission_old(file_in, True)
         self.mission_to_json(file_out)
-
-
 
     """ 
     
