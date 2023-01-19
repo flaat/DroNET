@@ -1,7 +1,7 @@
 import numpy as np
 from src.entities.depot.depots import Depot
 from src.entities.events.event import Event
-from src.entities.simulated_entities import Entity
+from src.entities.entities import Entity
 from src.utilities import utilities
 from src.simulation.configurator import Configurator
 
@@ -144,6 +144,9 @@ class Drone(Entity):
         Move the drone to the next point if self.move_routing is false, else it moves towards the depot.
         time -> time_step_duration (how much time between two simulation frame)
         """
+
+        # TODO: move_routing is ALWAYS false.
+        # TODO: consequently self.come_back_to_mission is ALWAYS false too.
         if self.move_routing or self.come_back_to_mission:
             # metrics: number of time steps on active routing (movement) a counter that is incremented each time
             # drone is moving to the depot for active routing, i.e., move_routing = True
