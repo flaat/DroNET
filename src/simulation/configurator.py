@@ -1,5 +1,4 @@
-from src.simulation.configuration import Configuration
-from enum import Enum
+from src.simulation.configuration import *
 import json
 
 
@@ -45,6 +44,12 @@ class Configurator(metaclass=SingletonMeta):
             "QL": QLearningRouting
         }
 
+        plot_options = {
+            "PLOT": Plot_Options.PLOT,
+            "PLOT_AND_SAVE": Plot_Options.PLOT_AND_SAVE,
+            "": Plot_Options.NOTHING
+        }
+
         config_file = open(path)
         json_parameters = json.load(config_file)
 
@@ -66,7 +71,7 @@ class Configurator(metaclass=SingletonMeta):
             path_drones['randomStartPoint'],
 
             # Drawing
-            drawing['plotSimulation'],
+            # drawing['plotSimulation'],
             drawing['waitSimulationStep'],
             drawing['skipSimulationStep'],
             drawing['drawSize'],
@@ -80,7 +85,8 @@ class Configurator(metaclass=SingletonMeta):
             simulation_parameters['numberOfDrones'],
             simulation_parameters['environmentWidth'],
             simulation_parameters['environmentHeight'],
-            simulation_parameters['showPlot'],
+            simulation_parameters['plotOptions'],
+            # simulation_parameters['showPlot'],
             simulation_parameters['debug'],
             simulation_parameters['experimentsDir'],
             simulation_parameters['savePlot'],

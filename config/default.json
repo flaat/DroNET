@@ -11,7 +11,6 @@
   },
 
   "drawing": {
-    "plotSimulation": false,
     "waitSimulationStep": 0,
     "skipSimulationStep": 5,
     "drawSize": 700,
@@ -26,7 +25,7 @@
       "numberOfDrones": 5,
       "environmentWidth": 1500,
       "environmentHeight": 1500,
-      "showPlot": false,
+      "plotOptions": "",
 
       "debug": false,
       "experimentsDir": "data/evaluation_tests/",

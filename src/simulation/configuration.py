@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import Enum
 from typing import Tuple
 
 @dataclass
@@ -12,7 +13,7 @@ class Configuration:
     random_start_point: bool
 
     # Drawing
-    plot_simulation: bool
+    # plot_simulation: bool
     wait_simulation_step: float
     skip_simulation_step: float
     draw_size: int
@@ -26,7 +27,8 @@ class Configuration:
     n_drones: int
     env_width: int
     env_height: int
-    show_plot: bool
+    plot_options: object
+    # show_plot: bool
     debug: bool
     experiments_dir: str
     save_plot: bool
@@ -64,3 +66,8 @@ class Configuration:
     old_hello_packet: int
     root_evaluation_delta: str
     nn_model_path: str
+
+class Plot_Options(Enum):
+    PLOT = 1
+    PLOT_AND_SAVE = 2
+    NOTHING = 3

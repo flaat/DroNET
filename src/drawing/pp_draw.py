@@ -1,6 +1,7 @@
 from src.drawing import stddraw
 from collections import defaultdict
 from src.simulation.configurator import Configurator
+from src.simulation.configuration import *
 
 
 # printer the environment
@@ -80,24 +81,29 @@ class PathPlanningDrawer:
         if self.config.show_dir_vec:
             self.__draw_next_target(drone.coordinates, drone.next_target())
 
-    def update(self, rate=1, save=False, show=True, filename=None):
+    def update(self, plot_options, rate=1, filename=None):
         """
         Update the canvas
         @param rate:
-        @param save:
-        @param show:
+        @param plot_options:
         @param filename:
         @return:
         """
         if self.borders:
             self.__borders_plot()
 
-        if show:
+        if plot_options == Plot_Options.PLOT:
             stddraw.show(rate)
-
-        if save:
+        if plot_options == Plot_Options.PLOT_AND_SAVE:
             assert (filename is not None)
             self.save(filename)
+
+        # if show:
+        #     stddraw.show(rate)
+        #
+        # if save:
+        #     assert (filename is not None)
+        #     self.save(filename)
 
         stddraw.clear()
 
