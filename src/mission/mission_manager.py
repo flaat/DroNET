@@ -1,8 +1,6 @@
 import json
 from src.simulation.configurator import Configurator
 
-from ast import literal_eval as make_tuple
-
 class MissionManager:
     def __init__(self):
         """
@@ -79,19 +77,6 @@ class MissionManager:
         self.is_mission(mission)
         self.mission = mission
 
-    def json_to_mission_old(self,json_file_in, whole=False):
-        mission = {}
-        with open(json_file_in, 'r') as in_file:
-            data = json.load(in_file)
-            for drone_data in data["drones"]:
-                drone_index = int(drone_data["index"])
-                if whole or drone_index < self.config.n_drones:
-                    drone_path = []
-                    for hop_coord in drone_data["tour"]:
-                        coord = make_tuple(hop_coord)
-                        drone_path.append(coord)
-                    mission[drone_index] = drone_path
-        return mission
 
     def mission_to_json(self, json_file_out):
         """
@@ -106,13 +91,43 @@ class MissionManager:
             out_data = {"drones": paths}
             json.dump(out_data, out_file)
 
+
+
+
+    """CASTIN OLD MISSIONS
+    
     def old_mission_format_to_new_format(self, file_in, file_out):
         self.mission = self.json_to_mission_old(file_in, True)
         self.mission_to_json(file_out)
+    def json_to_mission_old(self,json_file_in, whole=False):
+        mission = {}
+        with open(json_file_in, 'r') as in_file:
+            data = json.load(in_file)
+            for drone_data in data["drones"]:
+                drone_index = int(drone_data["index"])
+                if whole or drone_index < self.config.n_drones:
+                    drone_path = []
+                    for hop_coord in drone_data["tour"]:
+                        coord = make_tuple(hop_coord)
+                        drone_path.append(coord)
+                    mission[drone_index] = drone_path
+        return mission
+        
+    In tests
+    def cast(mission_manager):
+        for i in range(10,34):
+            json_file_in = config.JSON_path_prefix.format(i)
+            json_file_out = config.JSON_path_prefix.format(f'{i}NEW')
+            print(f"casting: {json_file_in} -> {json_file_out}")
+            mission_manager.old_mission_format_to_new_format(json_file_in, json_file_out)
+    def rename(mission_manager):
+        import os
+        for i in range(10,34):
+            os.system(f"mv {config.JSON_path_prefix.format(f'{i}NEW')} {config.JSON_path_prefix.format(f'{i}')}")
 
+    """
 
-
-    """ 
+    """ DA path manager
     
             #self.path_from_json = self.config.path_from_JSON
         #self.json_file = self.config.JSON_path_prefix.format(self.config.seed) # We assume json_file.format(seed) (?)

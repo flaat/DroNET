@@ -3,7 +3,10 @@ config = Configurator().configuration
 def path_manager_tests():
     from src.mission.mission_manager import MissionManager
     mission_manager = MissionManager()
-    block_2(mission_manager)
+
+    #block_2(mission_manager)
+
+
 
 def block_1(mission_manager):
     assert type(mission_manager.mission) is dict
