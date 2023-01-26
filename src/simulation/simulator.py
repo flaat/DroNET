@@ -2,14 +2,14 @@ from src.simulation.event_generator import EventGenerator
 from src.mission.mission_manager import MissionManager
 from src.drawing import pp_draw
 from src.entities.depot.depots import Depot
-from src.entities.environment.environment import Environment
+# from src.entities.environment.environment import Environment
 from src.entities.uavs.drone import Drone
 from src.simulation.logger import Logger
 from src.simulation.metrics import Metrics
 from src.utilities import utilities
 from src.routing_algorithms.net_routing import MediumDispatcher
 from tqdm import tqdm
-from src.simulation.configurator import Configurator
+from src.simulation.configurator import *
 
 import numpy as np
 import time
@@ -71,14 +71,14 @@ class Simulator:
         self.__set_random_generators()
 
         self.path_manager = MissionManager()
-        self.path_manager.json_to_mission(self.config.JSON_path_prefix.format(self.config.seed))
+        # self.path_manager.json_to_mission(self.config.JSON_path_prefix.format(self.config.seed))
 
         """self.path_manager = PathManager(path_from_json=self.config.path_from_JSON,
                                                   json_file=self.config.JSON_path_prefix,
                                                   seed=self.config.seed)"""
 
-        self.environment = Environment(width=self.config.env_width,
-                                       height=self.config.env_height)
+        # self.environment = Environment(width=self.config.env_width,
+        #                                height=self.config.env_height)
 
         self.depot = Depot(coordinates=self.config.depot_coordinates,
                            communication_range=self.config.depot_com_range,
@@ -105,7 +105,7 @@ class Simulator:
                                                                   self.config.env_height))
 
         #if self.config.show_plot or self.config.save_plot:
-        if self.config.plot_simulation:
+        if self.config.plot_options != Plot_Options.NOTHING:
             self.draw_manager = pp_draw.PathPlanningDrawer(env=self.environment,
                                                            padding=25,
                                                            borders=True)
@@ -151,7 +151,7 @@ class Simulator:
         file_name = self.sim_save_file + str(self.cur_step) + ".png"
         # TODO: python fails if SAVE_PLOT flag is set to True.
         #self.draw_manager.update(show=self.config.show_plot, save=self.config.save_plot, filename=file_name)
-        self.draw_manager.update(show=self.config.plot_simulation, save=self.config.save_plot, filename=file_name)
+        self.draw_manager.update(self.config.plot_options, filename=file_name)
 
 
     def run(self):

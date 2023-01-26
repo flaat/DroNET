@@ -1,4 +1,4 @@
-from src.entities.simulated_entities import Entity
+from src.entities.entities import Entity
 
 
 class Depot(Entity):
@@ -7,8 +7,9 @@ class Depot(Entity):
     """
 
     def __init__(self, coordinates: tuple, communication_range: float, clock, logger=None):
-        super().__init__(identifier=id(self), coordinates=coordinates, clock=clock, logger=logger)
+        super().__init__(identifier=id(self), clock=clock, logger=logger)
 
+        self.coordinates = coordinates
         self.communication_range = communication_range
         self.__buffer = list()  # also with duplicated packets
 
