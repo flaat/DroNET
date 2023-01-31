@@ -4,6 +4,7 @@ from src.entities.events.event import Event
 from src.entities.entities import Entity
 from src.utilities import utilities
 from src.simulation.configurator import Configurator
+from src.entities.uavs.energy_models.dandrea_energy_model import DandreaEnergyModel
 
 
 class Drone(Entity):
@@ -20,9 +21,9 @@ class Drone(Entity):
         self.sensing_range = self.config.drone_sen_range
         self.communication_range = self.config.drone_com_range
         self.buffer_max_size = self.config.drone_max_buffer_size
-        self.residual_energy = self.config.drone_max_energy
-        self.come_back_to_mission = False
-        self.last_move_routing = False
+
+        # TODO: Get variables form proper config file. Also don't just forcefully create an energy model
+        self.energy_model = DandreaEnergyModel(0.0, 4.0, 3.0, 0.5, 0.1, self.config.drone_max_energy)
 
         # dynamic parameters
         self.tightest_event_deadline = None  # used later to check if there is an event that is about to expire
@@ -79,7 +80,6 @@ class Drone(Entity):
         for packet in self.__buffer:
 
             if not packet.is_expired:
-
                 # append again only if it is not expired
                 temporary_buffer.append(packet)
                 self.tightest_event_deadline = np.nanmin([self.tightest_event_deadline, packet.event_ref.deadline])
@@ -87,7 +87,6 @@ class Drone(Entity):
         self.__buffer = temporary_buffer
 
         if not self.buffer_length:
-
             self.move_routing = False
 
     def feel_event(self):
@@ -125,7 +124,6 @@ class Drone(Entity):
             # because they have already been notified by someone already
 
             if not self.is_known_packet(packet):
-
                 self.__buffer.append(packet)
 
     def routing(self, drones: list):
@@ -139,41 +137,44 @@ class Drone(Entity):
 
         self.routing_algorithm.routing(drones)
 
-    def move(self, time):
+    def move(self):
         """
-        Move the drone to the next point if self.move_routing is false, else it moves towards the depot.
-        time -> time_step_duration (how much time between two simulation frame)
+        This function gets called every simulation tick. It serves two puposes:
+            1: Updates the drone's position based on its destination
+            2: Ticks the energy model as to drain the battery according to movement.
+        :return:
         """
 
-        # TODO: move_routing is ALWAYS false.
-        # TODO: consequently self.come_back_to_mission is ALWAYS false too.
-        if self.move_routing or self.come_back_to_mission:
-            # metrics: number of time steps on active routing (movement) a counter that is incremented each time
-            # drone is moving to the depot for active routing, i.e., move_routing = True
-            # or the drone is coming back to its mission
+        # Movement
+        if self.current_waypoint >= len(self.path) - 1:
+            self.current_waypoint = -1
 
-            pass
+        p0 = self.coordinates
+        p1 = self.path[self.current_waypoint + 1]
 
-        if self.move_routing:
+        all_distance = utilities.euclidean_distance(p0, p1)
+        dt = self.config.time_step_duration
+        distance = dt * self.speed
 
-            if not self.last_move_routing:  # this is the first time that we are doing move-routing
+        if all_distance == 0 or distance == 0:
+            self.current_waypoint += 1
+            self.coordinates = self.path[self.current_waypoint]
 
-                self.last_mission_coords = self.coordinates
+            return
 
-            self.__move_to_depot(time)
+        t = distance / all_distance
 
+        if t >= 1:
+            self.current_waypoint += 1
+            self.coordinates = self.path[self.current_waypoint]
+        elif t <= 0:
+            print("Error move drone, ratio < 0")
+            exit(1)
         else:
+            self.coordinates = (((1 - t) * p0[0] + t * p1[0]), ((1 - t) * p0[1] + t * p1[1]))
 
-            if self.last_move_routing:  # I'm coming back to the mission
-
-                self.come_back_to_mission = True
-
-            self.__move_to_mission(time)
-
-            # metrics: number of time steps on mission, incremented each time drone is doing sensing mission
-
-        # set the last move routing
-        self.last_move_routing = self.move_routing
+        # Energy Model update
+        self.energy_model.tick(drone_speed=self.config.drone_speed)
 
     def is_known_packet(self, received_packet):
         """
@@ -185,7 +186,6 @@ class Drone(Entity):
         for packet in self.__buffer:
 
             if packet.event_ref == received_packet.event_ref:
-
                 return True
 
         return False
@@ -212,7 +212,6 @@ class Drone(Entity):
                 self.__buffer.remove(packet)
 
                 if self.config.debug:
-
                     print(f"Drone {str(self.identifier)} just removed packet {str(packet.identifier)}")
 
     def next_target(self):
@@ -244,101 +243,6 @@ class Drone(Entity):
 
                 return self.path[self.current_waypoint + 1]
 
-    def __move_to_mission(self, time):
-        """
-        When invoked the drone moves on the map.
-        @param time: Time elapsed between two frames
-        @return:
-        """
-
-        if self.current_waypoint >= len(self.path) - 1:
-
-            self.current_waypoint = -1
-
-        p0 = self.coordinates
-
-        if self.come_back_to_mission:  # after move
-
-            p1 = self.last_mission_coords
-
-        else:
-
-            p1 = self.path[self.current_waypoint + 1]
-
-        all_distance = utilities.euclidean_distance(p0, p1)
-        distance = time * self.speed
-
-        if all_distance == 0 or distance == 0:
-
-            self.__update_position(p1)
-
-            return
-
-        t = distance / all_distance
-
-        if t >= 1:
-
-            self.__update_position(p1)
-
-        elif t <= 0:
-
-            print("Error move drone, ratio < 0")
-            exit(1)
-
-        else:
-
-            self.coordinates = (((1 - t) * p0[0] + t * p1[0]), ((1 - t) * p0[1] + t * p1[1]))
-
-    def __update_position(self, p1):
-        """
-
-        @param p1:
-        @return:
-        """
-        if self.come_back_to_mission:
-
-            self.come_back_to_mission = False
-            self.coordinates = p1
-
-        else:
-
-            self.current_waypoint += 1
-            self.coordinates = self.path[self.current_waypoint]
-
-    def __move_to_depot(self, time):
-        """
-        When invoked the drone moves to the depot.
-        @param time: Time elapsed between two frames
-        @return:
-        """
-
-        p0 = self.coordinates
-        p1 = self.depot.coordinates
-        all_distance = utilities.euclidean_distance(p0, p1)
-        distance = time * self.speed
-
-        if all_distance == 0:
-
-            self.move_routing = False
-
-            return
-
-        t = distance / all_distance
-
-        if t >= 1:
-
-            # with the next step you would surpass the target
-            self.coordinates = p1
-
-        elif t <= 0:
-
-            print("Error routing move drone, ratio < 0")
-            exit(1)
-
-        else:
-
-            self.coordinates = (((1 - t) * p0[0] + t * p1[0]), ((1 - t) * p0[1] + t * p1[1]))
-
     def __repr__(self):
         """
 
@@ -349,5 +253,3 @@ class Drone(Entity):
 
     def __hash__(self):
         return hash(self.identifier)
-
-

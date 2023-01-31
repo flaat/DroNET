@@ -13,7 +13,6 @@ class Configuration:
     random_start_point: bool
 
     # Drawing
-    # plot_simulation: bool
     wait_simulation_step: float
     skip_simulation_step: float
     draw_size: int
@@ -28,7 +27,6 @@ class Configuration:
     env_width: int
     env_height: int
     plot_options: object
-    # show_plot: bool
     debug: bool
     experiments_dir: str
     save_plot: bool

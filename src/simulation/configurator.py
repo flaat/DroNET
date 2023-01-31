@@ -44,12 +44,6 @@ class Configurator(metaclass=SingletonMeta):
             "QL": QLearningRouting
         }
 
-        plot_options = {
-            "PLOT": Plot_Options.PLOT,
-            "PLOT_AND_SAVE": Plot_Options.PLOT_AND_SAVE,
-            "": Plot_Options.NOTHING
-        }
-
         config_file = open(path)
         json_parameters = json.load(config_file)
 
@@ -61,6 +55,14 @@ class Configurator(metaclass=SingletonMeta):
         event_parameters = json_parameters['event']
         routing_parameters = json_parameters['routing']
 
+        plot_option = None
+        if simulation_parameters['plotOptions'] not in ["PLOT", "PLOT_AND_SAVE"]:
+            raise Exception("Invalid plot option {}".format(simulation_parameters['plotOptions']))
+        elif simulation_parameters['plotOptions'] == "PLOT":
+            plot_option = Plot_Options.PLOT
+        else:
+            plot_option = Plot_Options.PLOT_AND_SAVE
+
         self.configuration = Configuration(
             # Path Drones
             path_drones['circlePath'],
@@ -71,7 +73,6 @@ class Configurator(metaclass=SingletonMeta):
             path_drones['randomStartPoint'],
 
             # Drawing
-            # drawing['plotSimulation'],
             drawing['waitSimulationStep'],
             drawing['skipSimulationStep'],
             drawing['drawSize'],
@@ -85,8 +86,7 @@ class Configurator(metaclass=SingletonMeta):
             simulation_parameters['numberOfDrones'],
             simulation_parameters['environmentWidth'],
             simulation_parameters['environmentHeight'],
-            simulation_parameters['plotOptions'],
-            # simulation_parameters['showPlot'],
+            plot_option,
             simulation_parameters['debug'],
             simulation_parameters['experimentsDir'],
             simulation_parameters['savePlot'],
