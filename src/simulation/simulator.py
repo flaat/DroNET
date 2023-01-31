@@ -70,7 +70,8 @@ class Simulator:
         self.__set_random_generators()
 
         self.path_manager = MissionManager()
-        # self.path_manager.json_to_mission(self.config.JSON_path_prefix.format(self.config.seed))
+        if self.config.path_from_JSON:
+            self.path_manager.json_to_mission(self.config.JSON_path_prefix.format(self.config.seed))
 
         """self.path_manager = PathManager(path_from_json=self.config.path_from_JSON,
                                                   json_file=self.config.JSON_path_prefix,

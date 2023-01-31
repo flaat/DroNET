@@ -12,7 +12,7 @@ def block_1(mission_manager):
     assert type(mission_manager.mission) is dict
     #________________________
 
-    # testing set_drone_path
+
     feasible_path = [(0,0), (100,0), (100,100), (0, 100)]
     # drone id in range, well formatted path -> OK
     mission_manager.set_drone_path(0, feasible_path)
