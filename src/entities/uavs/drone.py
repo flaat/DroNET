@@ -22,6 +22,8 @@ class Drone(Entity):
         self.communication_range = self.config.drone_com_range
         self.buffer_max_size = self.config.drone_max_buffer_size
 
+        self.energy = self.config.drone_max_energy
+
         # TODO: Get variables form proper config file. Also don't just forcefully create an energy model
         self.energy_model = DandreaEnergyModel(0.0, 4.0, 3.0, 0.5, 0.1, self.config.drone_max_energy)
 
@@ -174,7 +176,7 @@ class Drone(Entity):
             self.coordinates = (((1 - t) * p0[0] + t * p1[0]), ((1 - t) * p0[1] + t * p1[1]))
 
         # Energy Model update
-        self.energy_model.tick(drone_speed=self.config.drone_speed)
+        self.energy = self.energy_model.tick(drone_speed=self.config.drone_speed, energy=self.energy)
 
     def is_known_packet(self, received_packet):
         """

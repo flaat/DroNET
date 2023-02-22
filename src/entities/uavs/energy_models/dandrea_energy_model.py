@@ -16,7 +16,7 @@ class DandreaEnergyModel(EnergyModel):
     """
 
     def __init__(self, payload_mass, drone_mass, lift_to_drag_ratio, power_transfer_efficiency,
-                 power_consumption_electronics, battery_capacity):
+                 power_consumption_electronics):
         # TODO: Definitely add units.
         # Only thing that's missing is speed, which we already have in the drone class.
 
@@ -35,6 +35,7 @@ class DandreaEnergyModel(EnergyModel):
         :return:
         """
 
-        self.battery_capacity -= (((self.payload_mass + self.drone_mass) * data["drone_speed"])
-                                  / (
-                                              370 * self.lift_to_drag_ratio * self.power_transfer_efficiency)) + self.power_consumption_electronics
+        delta_e = 9.81 * data["drone_speed"] / self.lift_to_drag_ratio / self.power_transfer_efficiency * \
+                  (self.payload_mass + self.drone_mass) + self.power_consumption_electronics
+
+        return data["energy"] - delta_e
