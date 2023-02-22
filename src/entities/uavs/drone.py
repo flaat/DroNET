@@ -104,7 +104,7 @@ class Drone(Entity):
 
         packet = generated_event.as_packet(self)
 
-        if not self.move_routing and not self.come_back_to_mission:
+        if not self.move_routing:
 
             self.__buffer.append(packet)
 
@@ -226,11 +226,6 @@ class Drone(Entity):
         if self.move_routing:
 
             return self.depot.coordinates
-
-        # case 2: if come_back_to_mission then go to the last coordinates known
-        elif self.come_back_to_mission:
-
-            return self.last_mission_coords
 
         # case 3: else go to the next waypoint in the path
         else:

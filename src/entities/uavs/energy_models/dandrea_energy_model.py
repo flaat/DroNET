@@ -16,7 +16,7 @@ class DandreaEnergyModel(EnergyModel):
     """
 
     def __init__(self, payload_mass, drone_mass, lift_to_drag_ratio, power_transfer_efficiency,
-                 power_consumption_electronics):
+                 power_consumption_electronics, battery_capacity):
         # TODO: Definitely add units.
         # Only thing that's missing is speed, which we already have in the drone class.
 
